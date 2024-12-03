@@ -45,8 +45,8 @@ const Home = () => {
     <div
       className="container mx-auto py-10 font-roboto"
       style={{
-        backgroundColor: '#1a202c', // Same dark gray as the footer
-        color: '#f7fafc', // Light text for contrast
+        backgroundColor: '#f1f1f1', // Light grey
+        color: '#333', // Darker text for contrast
         paddingTop: '200px', // Adjust this value based on your navbar height
         paddingBottom: '100px', // To add spacing for footer visibility
     }}
