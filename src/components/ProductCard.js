@@ -20,7 +20,7 @@ const ProductCard = ({ product }) => {
         }}
       >
         <img
-          src={`http://localhost:5000/${product.image.replace(/\\/g, '/')}`} // Replace backslashes with forward slashes
+          src={`https://gatangu-backend-1.onrender.com${product.image}`}
           alt={product.name}
           className="object-cover"
           style={{
