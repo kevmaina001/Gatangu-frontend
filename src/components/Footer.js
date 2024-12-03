@@ -23,20 +23,20 @@ const Footer = () => {
   }, [accountDropdownOpen]);
 
   return (
-    <footer className="bg-gray-300 text-gray-900 py-6 fixed bottom-0 w-full md:relative">
+    <footer className="bg-gray-800 text-gray-100 py-4 fixed bottom-0 w-full md:relative">
       {/* Desktop Footer */}
       <div className="container mx-auto text-center hidden md:block">
-        <p className="text-gray-600">
+        <p className="text-gray-400">
           &copy; 2024 Gatangu Enterprises. All rights reserved.
         </p>
       </div>
 
       {/* Mobile Footer Navigation */}
-      <div className="flex justify-around md:hidden bg-gray-300 text-gray-900 py-4">
+      <div className="flex justify-around md:hidden bg-gray-800 text-gray-100 py-3">
         {/* Home */}
         <Link
           to="/"
-          className="flex flex-col items-center text-sm hover:text-blue-600 transition-all"
+          className="flex flex-col items-center text-sm hover:text-yellow-500 transition-all"
         >
           <FaHome className="text-lg mb-1" />
           <span>Home</span>
@@ -46,7 +46,7 @@ const Footer = () => {
         <div className="relative">
           <button
             onClick={toggleAccountDropdown}
-            className="flex flex-col items-center text-sm hover:text-blue-600 transition-all"
+            className="flex flex-col items-center text-sm hover:text-yellow-500 transition-all"
           >
             <FaUser className="text-lg mb-1" />
             <span>{user ? user.username : 'Account'}</span>
@@ -54,7 +54,7 @@ const Footer = () => {
           {accountDropdownOpen && (
             <div
               id="accountDropdown"
-              className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-white text-gray-900 rounded-md shadow-lg w-40"
+              className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-gray-100 text-gray-800 rounded-md shadow-lg w-40"
             >
               <ul className="py-2">
                 {user ? (
@@ -96,7 +96,7 @@ const Footer = () => {
           href="https://wa.me/254724526080"
           target="_blank"
           rel="noopener noreferrer"
-          className="flex flex-col items-center text-sm hover:text-blue-600 transition-all"
+          className="flex flex-col items-center text-sm hover:text-yellow-500 transition-all"
         >
           <FaWhatsapp className="text-lg mb-1 text-green-500" />
           <span>Help</span>
