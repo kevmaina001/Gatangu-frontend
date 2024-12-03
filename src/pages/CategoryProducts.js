@@ -38,7 +38,7 @@ const CategoryProducts = () => {
         fontFamily: `'Roboto', 'Roboto Condensed', 'Roboto Slab', sans-serif`,
         backgroundColor: '#f1f1f1', // Light grey background
         paddingTop: '200px', // Spacing for fixed navbar
-        paddingBottom: '100px', // Spacing for footer
+        paddingBottom: '150px', // Spacing for footer
       }}
     >
       {loading ? (
