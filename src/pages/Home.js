@@ -30,7 +30,7 @@ const Home = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await api.get('/api/products');
+        const response = await api.get('/products');
         setFeaturedProducts(response.data.slice(0, 8));
         setError(false);
       } catch (error) {
