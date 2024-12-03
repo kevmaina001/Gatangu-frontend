@@ -20,7 +20,7 @@ const ProductCard = ({ product }) => {
         }}
       >
         <img
-          src={`https://gatangu-backend-1.onrender.com${product.image}`}
+          src={`https://gatangu-backend-1.onrender.com/${product.image}`}
           alt={product.name}
           className="object-cover"
           style={{
