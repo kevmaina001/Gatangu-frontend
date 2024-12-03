@@ -46,7 +46,7 @@ const Cart = () => {
                 className="w-24 h-24 bg-gray-100 flex items-center justify-center overflow-hidden rounded-lg"
               >
                 <img
-                  src={`https://gatangu-backend-1.onrender.com/${product.image}`}  // Fetch image from backend
+                  src={`https://gatangu-backend-1.onrender.com/${item.image}`} // Fetch image from backend
                   alt={item.name}
                   className="object-cover w-full h-full"
                 />
