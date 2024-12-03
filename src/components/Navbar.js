@@ -43,10 +43,11 @@ const Navbar = () => {
   };
 
   return (
-    <header
-      className="bg-secondary text-white fixed top-0 left-0 w-full z-50 shadow-lg"
-      style={{ fontFamily: `'Roboto', sans-serif` }}
-    >
+          <header
+        className="bg-gray-800 text-gray-100 fixed top-0 left-0 w-full z-50 shadow-lg"
+        style={{ fontFamily: `'Roboto', sans-serif` }}
+      >
+
       {/* Top Bar */}
       <div className="container mx-auto flex justify-end items-center py-2 text-sm">
         <span>0724-526-080</span>
@@ -61,7 +62,8 @@ const Navbar = () => {
           <img
             src="/images/logo.jpg"
             alt="Logo"
-            className="w-16 h-16 md:w-20 md:h-20"
+            className="w-20 h-20 md:w-24 md:h-24 rounded-lg"
+
           />
         </Link>
 

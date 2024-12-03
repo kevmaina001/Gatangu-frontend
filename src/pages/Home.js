@@ -46,6 +46,7 @@ const Home = () => {
       className="container mx-auto py-10 font-roboto bg-white"
       style={{
         paddingTop: '200px', // Adjust this value based on your navbar height
+        paddingBottom: '200px'
       }}
     >
       {/* Mobile Sidebar Toggle */}
