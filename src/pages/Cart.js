@@ -70,7 +70,7 @@ const Cart = () => {
               </div>
               {/* Item Total */}
               <p className="text-lg font-bold text-gray-800">
-                ${(item.price * item.quantity).toFixed(2)}
+                Ksh. {(item.price * item.quantity).toFixed(2)}
               </p>
               {/* Remove Button */}
               <button

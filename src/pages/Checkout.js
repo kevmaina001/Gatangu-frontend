@@ -75,14 +75,14 @@ const Checkout = () => {
               </p>
             </div>
             <p className="font-bold">
-              ${item.price * item.quantity}
+              Ksh. {item.price * item.quantity}
             </p>
           </div>
         ))}
         <div className="flex justify-between font-bold text-lg">
           <p>Total:</p>
           <p>
-            ${cart.reduce((total, item) => total + item.price * item.quantity, 0)}
+            Ksh. {cart.reduce((total, item) => total + item.price * item.quantity, 0)}
           </p>
         </div>
       </div>
@@ -101,7 +101,7 @@ const Checkout = () => {
           required
         />
 
-        <input
+        {/* <input
           type="text"
           name="address"
           placeholder="Address"
@@ -109,9 +109,9 @@ const Checkout = () => {
           onChange={handleChange}
           className="w-full border border-gray-300 p-2 rounded"
           required
-        />
+        /> */}
 
-        <input
+        {/* <input
           type="text"
           name="city"
           placeholder="City"
@@ -119,9 +119,9 @@ const Checkout = () => {
           onChange={handleChange}
           className="w-full border border-gray-300 p-2 rounded"
           required
-        />
+        /> */}
 
-        <input
+        {/* <input
           type="text"
           name="postalCode"
           placeholder="Postal Code"
@@ -129,9 +129,9 @@ const Checkout = () => {
           onChange={handleChange}
           className="w-full border border-gray-300 p-2 rounded"
           required
-        />
+        /> */}
 
-        <input
+        {/* <input
           type="text"
           name="country"
           placeholder="Country"
@@ -139,7 +139,7 @@ const Checkout = () => {
           onChange={handleChange}
           className="w-full border border-gray-300 p-2 rounded"
           required
-        />
+        /> */}
 
         {/* Payment Information */}
         <h3 className="text-2xl font-semibold mt-6 mb-2">Payment Information</h3>

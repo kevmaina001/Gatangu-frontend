@@ -43,7 +43,10 @@ const Navbar = () => {
   };
 
   return (
-    <header className="bg-secondary text-white">
+    <header
+      className="bg-secondary text-white fixed top-0 left-0 w-full z-50 shadow-lg"
+      style={{ fontFamily: `'Roboto', sans-serif` }}
+    >
       {/* Top Bar */}
       <div className="container mx-auto flex justify-end items-center py-2 text-sm">
         <span>0724-526-080</span>
@@ -52,7 +55,7 @@ const Navbar = () => {
       </div>
 
       {/* Main Navbar */}
-      <nav className="container mx-auto flex items-center justify-between py-4" style={{ fontFamily: `'Roboto', sans-serif` }}>
+      <nav className="container mx-auto flex items-center justify-between py-4">
         {/* Logo */}
         <Link to="/" className="flex items-center text-xl font-bold text-primary">
           <img
@@ -60,23 +63,24 @@ const Navbar = () => {
             alt="Logo"
             className="w-16 h-16 md:w-20 md:h-20"
           />
-          {/* Show name on desktop, hide on mobile */}
-          <span className="text-lg md:text-2xl text-white hidden md:inline">Gatangu Enterprises</span>
         </Link>
 
         {/* Search Bar */}
         <form
           onSubmit={handleSearchSubmit}
-          className="relative mx-4 flex-grow md:max-w-sm md:mx-0"
+          className="absolute left-1/2 transform -translate-x-1/2 md:relative md:left-0 md:transform-none mx-4 max-w-[200px] md:max-w-[300px] flex-grow"
         >
           <input
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search products..."
-            className="w-full px-4 py-2 rounded-md border border-gray-300 text-black"
+            className="w-full px-3 py-2 rounded-md border border-gray-300 text-black text-sm"
           />
-          <button type="submit" className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500">
+          <button
+            type="submit"
+            className="absolute top-1/2 right-2 transform -translate-y-1/2 text-gray-500"
+          >
             <FaSearch />
           </button>
         </form>
@@ -96,17 +100,29 @@ const Navbar = () => {
               <div className="absolute left-0 mt-2 w-56 bg-white text-secondary rounded-md shadow-lg z-10">
                 <ul className="py-2">
                   <li>
-                    <Link to="/category/groceries" className="block px-4 py-2 hover:bg-gray-100" onClick={toggleCategories}>
+                    <Link
+                      to="/category/groceries"
+                      className="block px-4 py-2 hover:bg-gray-100"
+                      onClick={toggleCategories}
+                    >
                       Groceries
                     </Link>
                   </li>
                   <li>
-                    <Link to="/category/personal-care" className="block px-4 py-2 hover:bg-gray-100" onClick={toggleCategories}>
+                    <Link
+                      to="/category/personal-care"
+                      className="block px-4 py-2 hover:bg-gray-100"
+                      onClick={toggleCategories}
+                    >
                       Personal Care
                     </Link>
                   </li>
                   <li>
-                    <Link to="/category/household-supplies" className="block px-4 py-2 hover:bg-gray-100" onClick={toggleCategories}>
+                    <Link
+                      to="/category/household-supplies"
+                      className="block px-4 py-2 hover:bg-gray-100"
+                      onClick={toggleCategories}
+                    >
                       Household Supplies
                     </Link>
                   </li>
@@ -117,7 +133,10 @@ const Navbar = () => {
 
           {/* Add Product Button (Admin Only) */}
           {user?.id === ADMIN_ID && (
-            <Link to="/add-product" className="bg-primary text-white px-4 py-2 rounded-md hover:bg-yellow-600">
+            <Link
+              to="/add-product"
+              className="bg-primary text-white px-4 py-2 rounded-md hover:bg-yellow-600"
+            >
               Add Product
             </Link>
           )}
@@ -125,13 +144,15 @@ const Navbar = () => {
           {/* Account Dropdown */}
           <div className="relative">
             {user ? (
-              <button onClick={toggleAccountDropdown} className="flex items-center hover:text-primary">
+              <button
+                onClick={toggleAccountDropdown}
+                className="flex items-center hover:text-primary"
+              >
                 <FaUser className="mr-2" />
                 Hi, {user.username}
                 <FaCaretDown className="ml-1" />
               </button>
             ) : (
-              // Account Icon with Sign In/Register Dropdown
               <div className="relative">
                 <button
                   onClick={toggleAccountDropdown}
@@ -164,21 +185,6 @@ const Navbar = () => {
                     </ul>
                   </div>
                 )}
-              </div>
-            )}
-
-            {user && accountDropdownOpen && (
-              <div className="absolute right-0 mt-2 w-56 bg-white text-secondary rounded-md shadow-lg z-10">
-                <ul className="py-2">
-                  <li>
-                    <button
-                      onClick={handleLogout}
-                      className="block w-full text-left px-4 py-2 hover:bg-gray-100"
-                    >
-                      Logout
-                    </button>
-                  </li>
-                </ul>
               </div>
             )}
           </div>
@@ -231,24 +237,39 @@ const Navbar = () => {
                 placeholder="Search products..."
                 className="w-full px-4 py-2 rounded-md border border-gray-300 text-black"
               />
-              <button type="submit" className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500">
+              <button
+                type="submit"
+                className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
+              >
                 <FaSearch />
               </button>
             </form>
 
             <ul className="space-y-4">
               <li>
-                <Link to="/category/groceries" onClick={toggleMenu} className="block px-4 py-2 hover:bg-gray-100">
+                <Link
+                  to="/category/groceries"
+                  onClick={toggleMenu}
+                  className="block px-4 py-2 hover:bg-gray-100"
+                >
                   Groceries
                 </Link>
               </li>
               <li>
-                <Link to="/category/personal-care" onClick={toggleMenu} className="block px-4 py-2 hover:bg-gray-100">
+                <Link
+                  to="/category/personal-care"
+                  onClick={toggleMenu}
+                  className="block px-4 py-2 hover:bg-gray-100"
+                >
                   Personal Care
                 </Link>
               </li>
               <li>
-                <Link to="/category/household-supplies" onClick={toggleMenu} className="block px-4 py-2 hover:bg-gray-100">
+                <Link
+                  to="/category/household-supplies"
+                  onClick={toggleMenu}
+                  className="block px-4 py-2 hover:bg-gray-100"
+                >
                   Household Supplies
                 </Link>
               </li>

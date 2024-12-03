@@ -79,7 +79,7 @@ const ProductDetails = () => {
         <div className="w-full md:w-1/3 mb-6 md:mb-0">
           <div className="bg-gray-100 rounded-lg overflow-hidden shadow-md">
             <img
-              src={`http://localhost:5000/${product.image.replace(/\\/g, '/')}`} // Ensure proper path for image
+               src={`https://gatangu-backend-1.onrender.com/${product.image}`} // Ensure proper path for image
               alt={product.name}
               className="w-full object-contain p-4"
               style={{ height: '200px' }} // Reduced height for scaling

@@ -30,7 +30,7 @@ const Home = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await api.get('/products');
+        const response = await api.get('/api/products');
         setFeaturedProducts(response.data.slice(0, 8));
         setError(false);
       } catch (error) {
@@ -42,7 +42,12 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="container mx-auto py-10 font-roboto bg-white">
+    <div
+      className="container mx-auto py-10 font-roboto bg-white"
+      style={{
+        paddingTop: '200px', // Adjust this value based on your navbar height
+      }}
+    >
       {/* Mobile Sidebar Toggle */}
       <button
         className="md:hidden bg-yellow-500 text-white px-4 py-2 rounded-md mb-4"
@@ -58,7 +63,7 @@ const Home = () => {
             isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
           } transition-transform md:static md:translate-x-0 w-3/4 md:w-1/4 p-4 z-50`}
           style={{
-            zIndex: 1000, // Ensure the sidebar is above the slider
+            zIndex: 10, // Ensure the sidebar is above the slider
           }}
         >
           <h2 className="text-xl font-bold mb-4">Categories</h2>

@@ -5,7 +5,7 @@ const ProductCard = ({ product }) => {
   return (
     <Link
       to={`/products/${product._id}`}
-      className="block border border-gray-300 p-4 hover:shadow-lg transition-shadow"
+      className="block border border-white p-4 hover:shadow-lg transition-shadow"
       style={{
         backgroundColor: '#ffffff', // Plain white background
         width: '90%', // Consistent card size

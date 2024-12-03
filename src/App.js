@@ -5,11 +5,13 @@ import { CartProvider } from './context/CartContext';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 
-// Lazy loading pages
-const Home = React.lazy(() => import('./pages/Home'));
-const ProductDetails = React.lazy(() => import('./pages/ProductDetails'));
-const Cart = React.lazy(() => import('./pages/Cart'));
-const Checkout = React.lazy(() => import('./pages/Checkout'));
+// Eagerly loaded pages (Critical components)
+import Home from './pages/Home';
+import ProductDetails from './pages/ProductDetails';
+import Cart from './pages/Cart';
+import Checkout from './pages/Checkout';
+
+// Lazy loading non-critical pages
 const SignIn = React.lazy(() => import('./pages/SignIn'));
 const SignUp = React.lazy(() => import('./pages/SignUp'));
 const CategoryProducts = React.lazy(() => import('./pages/CategoryProducts'));
@@ -31,7 +33,6 @@ const LoadingFallback = () => (
   </div>
 );
 
-
 const App = () => {
   return (
     <Router>
@@ -42,10 +43,13 @@ const App = () => {
             <main className="flex-grow">
               <Suspense fallback={<LoadingFallback />}>
                 <Routes>
+                  {/* Eagerly loaded pages */}
                   <Route path="/" element={<Home />} />
                   <Route path="/products/:id" element={<ProductDetails />} />
                   <Route path="/cart" element={<Cart />} />
                   <Route path="/checkout" element={<Checkout />} />
+
+                  {/* Lazy loaded pages */}
                   <Route path="/login" element={<SignIn />} />
                   <Route path="/register" element={<SignUp />} />
                   <Route path="/category/:categoryName" element={<CategoryProducts />} />
