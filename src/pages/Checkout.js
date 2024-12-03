@@ -44,7 +44,6 @@ const Checkout = () => {
 
     // Replace with backend API integration
     try {
-      // Simulate order submission (replace with real API call)
       alert('Your order has been placed successfully!');
       console.log('Order placed successfully:', orderData);
 
@@ -57,7 +56,12 @@ const Checkout = () => {
   };
 
   return (
-    <div className="container mx-auto py-10">
+    <div
+      className="container mx-auto pt-52 py-10"
+      style={{
+        fontFamily: `'Roboto', 'Poppins', sans-serif`,
+      }}
+    >
       <h2 className="text-3xl font-bold mb-6 text-center">Checkout</h2>
 
       {/* Cart Summary */}
@@ -101,7 +105,7 @@ const Checkout = () => {
           required
         />
 
-        {/* <input
+        <input
           type="text"
           name="address"
           placeholder="Address"
@@ -109,9 +113,9 @@ const Checkout = () => {
           onChange={handleChange}
           className="w-full border border-gray-300 p-2 rounded"
           required
-        /> */}
+        />
 
-        {/* <input
+        <input
           type="text"
           name="city"
           placeholder="City"
@@ -119,9 +123,9 @@ const Checkout = () => {
           onChange={handleChange}
           className="w-full border border-gray-300 p-2 rounded"
           required
-        /> */}
+        />
 
-        {/* <input
+        <input
           type="text"
           name="postalCode"
           placeholder="Postal Code"
@@ -129,9 +133,9 @@ const Checkout = () => {
           onChange={handleChange}
           className="w-full border border-gray-300 p-2 rounded"
           required
-        /> */}
+        />
 
-        {/* <input
+        <input
           type="text"
           name="country"
           placeholder="Country"
@@ -139,7 +143,7 @@ const Checkout = () => {
           onChange={handleChange}
           className="w-full border border-gray-300 p-2 rounded"
           required
-        /> */}
+        />
 
         {/* Payment Information */}
         <h3 className="text-2xl font-semibold mt-6 mb-2">Payment Information</h3>

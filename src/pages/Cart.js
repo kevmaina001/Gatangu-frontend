@@ -23,7 +23,7 @@ const Cart = () => {
 
   return (
     <div
-      className="container mx-auto py-10"
+      className="container mx-auto pt-52 py-10"
       style={{
         fontFamily: `'Roboto', 'Poppins', sans-serif`,
       }}
@@ -54,7 +54,7 @@ const Cart = () => {
               {/* Product Details */}
               <div className="flex-grow">
                 <h3 className="text-lg font-semibold text-gray-800">{item.name}</h3>
-                <p className="text-gray-600 text-sm">Price: ${item.price.toFixed(2)}</p>
+                <p className="text-gray-600 text-sm">Price: Ksh. {item.price.toFixed(2)}</p>
                 <div className="flex items-center space-x-2 mt-2">
                   <p className="text-gray-600 text-sm">Quantity:</p>
                   <input
@@ -83,7 +83,7 @@ const Cart = () => {
           ))}
           {/* Total Price and Checkout */}
           <div className="text-right mt-6">
-            <h3 className="text-2xl font-bold text-gray-800">Total: ${totalPrice.toFixed(2)}</h3>
+            <h3 className="text-2xl font-bold text-gray-800">Total: Ksh. {totalPrice.toFixed(2)}</h3>
             <button
               onClick={handleCheckout}
               className="mt-4 bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg hover:bg-blue-600 transition-all"
