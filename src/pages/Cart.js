@@ -26,8 +26,8 @@ const Cart = () => {
       className="container mx-auto py-20"
       style={{
         fontFamily: `'Roboto', 'Poppins', sans-serif`,
-        paddingTop: '200px', // Padding at the top
-        paddingBottom: '100px', // Padding at the bottom
+        paddingTop: '120px', // Padding at the top
+        paddingBottom: '150px', // Padding at the bottom
       }}
     >
       <h2 className="text-3xl font-bold mb-6 text-center">Shopping Cart</h2>

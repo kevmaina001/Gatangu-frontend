@@ -57,9 +57,11 @@ const Checkout = () => {
 
   return (
     <div
-      className="container mx-auto pt-52 py-10"
+      className="container mx-auto py-20"
       style={{
         fontFamily: `'Roboto', 'Poppins', sans-serif`,
+        paddingTop: '115px', // Adjust for top padding
+        paddingBottom: '150px', // Adjust for bottom padding
       }}
     >
       <h2 className="text-3xl font-bold mb-6 text-center">Checkout</h2>
