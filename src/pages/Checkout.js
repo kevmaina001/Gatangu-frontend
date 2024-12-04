@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useCart } from '../context/CartContext'; // Access the cart context
+import { useCart } from '../context/CartContext';
 
 const Checkout = () => {
-  const { cart, clearCart } = useCart(); // Access cart data and clearCart function
+  const { cart, clearCart } = useCart();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -10,16 +10,21 @@ const Checkout = () => {
     city: '',
     postalCode: '',
     country: '',
-    note: '', // Added note field for user instructions
+    note: '',
   });
   const [scriptLoaded, setScriptLoaded] = useState(false);
 
-  // Dynamically load the Paystack script
+  const totalAmount = cart.reduce((total, item) => total + item.price * item.quantity, 0);
+
   useEffect(() => {
     const script = document.createElement('script');
     script.src = 'https://js.paystack.co/v1/inline.js';
     script.async = true;
     script.onload = () => setScriptLoaded(true);
+    script.onerror = () => {
+      console.error('Failed to load Paystack script.');
+      setScriptLoaded(false);
+    };
     document.body.appendChild(script);
 
     return () => {
@@ -27,35 +32,29 @@ const Checkout = () => {
     };
   }, []);
 
-  // Calculate total amount
-  const totalAmount = cart.reduce((total, item) => total + item.price * item.quantity, 0);
-
-  // Handle form input changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  // Handle Paystack payment
   const handlePaystackPayment = () => {
     if (!scriptLoaded) {
-      alert('Paystack script is not loaded yet. Please try again.');
+      alert('Payment service is unavailable. Please try again later.');
       return;
     }
 
     const handler = window.PaystackPop.setup({
       key: 'pk_live_26d6ae7b0368c7e840c4f45d6d2e8d679317f833', // Replace with your Paystack public key
       email: formData.email,
-      amount: totalAmount * 100, // Paystack requires the amount in kobo (multiplied by 100)
-      currency: 'KES', // Adjust to your currency
+      amount: totalAmount * 100, // Amount in kobo
+      currency: 'KES',
       onClose: () => {
         alert('Payment window closed.');
       },
       callback: async (response) => {
         alert(`Payment successful! Reference: ${response.reference}`);
-        console.log('Payment Success:', response);
+        console.log('Payment success:', response);
 
-        // Prepare order data
         const orderData = {
           customer: formData,
           items: cart.map((item) => ({ productId: item.id, quantity: item.quantity })),
@@ -65,7 +64,6 @@ const Checkout = () => {
         };
 
         try {
-          // Send order details to the backend
           const apiUrl = `${process.env.REACT_APP_API_URL}/orders`;
           const apiResponse = await fetch(apiUrl, {
             method: 'POST',
@@ -73,16 +71,15 @@ const Checkout = () => {
             body: JSON.stringify(orderData),
           });
 
-          const data = await apiResponse.json();
           if (apiResponse.ok) {
-            clearCart(); // Clear the cart after successful order placement
+            clearCart();
             alert('Order placed successfully!');
           } else {
             alert('Failed to save order details. Please contact support.');
           }
         } catch (error) {
           console.error('Error saving order details:', error);
-          alert('An error occurred while saving your order. Please try again.');
+          alert('An error occurred. Please try again.');
         }
       },
     });
