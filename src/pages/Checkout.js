@@ -2,17 +2,19 @@ import React, { useState } from 'react';
 import { useCart } from '../context/CartContext'; // Access the cart context
 
 const Checkout = () => {
-  const { cart } = useCart(); // Access cart data
+  const { cart, clearCart } = useCart(); // Access cart data and clearCart function
   const [formData, setFormData] = useState({
     name: '',
+    email: '',
     address: '',
     city: '',
     postalCode: '',
     country: '',
-    cardNumber: '',
-    expiryDate: '',
-    cvv: '',
+    note: '', // Added note field for user instructions
   });
+
+  // Calculate total amount
+  const totalAmount = cart.reduce((total, item) => total + item.price * item.quantity, 0);
 
   // Handle form input changes
   const handleChange = (e) => {
@@ -20,48 +22,62 @@ const Checkout = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  // Handle form submission
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    // Ensure cart has items before proceeding
-    if (cart.length === 0) {
-      alert('Your cart is empty. Add some products before checking out.');
-      return;
-    }
-
-    // Prepare order data
-    const orderData = {
-      customer: formData,
-      items: cart,
-      totalAmount: cart.reduce(
-        (total, item) => total + item.price * item.quantity,
-        0
-      ),
-    };
-
-    console.log('Order Data:', orderData); // Debugging log
-
-    // Replace with backend API integration
-    try {
-      alert('Your order has been placed successfully!');
-      console.log('Order placed successfully:', orderData);
-
-      // Clear the cart if order is successful
-      // Replace this logic with a clear cart function in the context
-    } catch (err) {
-      console.error('Error placing order:', err);
-      alert('Failed to place order. Please try again.');
-    }
+  // Handle Paystack payment
+  const handlePaystackPayment = () => {
+    const handler = window.PaystackPop.setup({
+      key: 'pk_live_26d6ae7b0368c7e840c4f45d6d2e8d679317f833', // Replace with your Paystack public key
+      email: formData.email,
+      amount: totalAmount, // Paystack requires the amount in kobo (multiplied by 100)
+      currency: 'KES', // Adjust to your currency
+      onClose: () => {
+        alert('Payment window closed.');
+      },
+      callback: async (response) => {
+        console.log('Payment Success:', response);
+        alert(`Payment successful! Reference: ${response.reference}`);
+  
+        // Prepare order data
+        const orderData = {
+          customer: formData,
+          items: cart.map((item) => ({ productId: item.id, quantity: item.quantity })),
+          totalAmount,
+          note: formData.note,
+          paymentReference: response.reference,
+        };
+  
+        try {
+          // Send order details to the backend
+          const apiUrl = `${process.env.REACT_APP_API_URL}/orders`;
+          const apiResponse = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData),
+          });
+  
+          const data = await apiResponse.json();
+          if (apiResponse.ok) {
+            clearCart(); // Clear the cart after successful order placement
+            alert('Order placed successfully!');
+          } else {
+            alert('Failed to save order details. Please contact support.');
+          }
+        } catch (error) {
+          console.error('Error saving order details:', error);
+          alert('An error occurred while saving your order. Please try again.');
+        }
+      },
+    });
+  
+    handler.openIframe();
   };
-
+  
   return (
     <div
       className="container mx-auto py-20"
       style={{
         fontFamily: `'Roboto', 'Poppins', sans-serif`,
-        paddingTop: '115px', // Adjust for top padding
-        paddingBottom: '150px', // Adjust for bottom padding
+        paddingTop: '115px',
+        paddingBottom: '150px',
       }}
     >
       <h2 className="text-3xl font-bold mb-6 text-center">Checkout</h2>
@@ -70,30 +86,21 @@ const Checkout = () => {
       <div className="bg-gray-100 p-4 rounded-lg shadow-md mb-6">
         <h3 className="text-xl font-bold mb-4">Order Summary</h3>
         {cart.map((item) => (
-          <div
-            key={item.id}
-            className="flex items-center justify-between mb-4"
-          >
+          <div key={item.id} className="flex items-center justify-between mb-4">
             <div>
               <h4 className="font-medium">{item.name}</h4>
-              <p className="text-sm text-gray-600">
-                Quantity: {item.quantity}
-              </p>
+              <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
             </div>
-            <p className="font-bold">
-              Ksh. {item.price * item.quantity}
-            </p>
+            <p className="font-bold">Ksh. {item.price * item.quantity}</p>
           </div>
         ))}
         <div className="flex justify-between font-bold text-lg">
           <p>Total:</p>
-          <p>
-            Ksh. {cart.reduce((total, item) => total + item.price * item.quantity, 0)}
-          </p>
+          <p>Ksh. {totalAmount}</p>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="max-w-lg mx-auto space-y-4">
+      <form onSubmit={(e) => e.preventDefault()} className="max-w-lg mx-auto space-y-4">
         {/* Shipping Information */}
         <h3 className="text-2xl font-semibold mb-2">Shipping Information</h3>
 
@@ -102,6 +109,16 @@ const Checkout = () => {
           name="name"
           placeholder="Full Name"
           value={formData.name}
+          onChange={handleChange}
+          className="w-full border border-gray-300 p-2 rounded"
+          required
+        />
+
+        <input
+          type="email"
+          name="email"
+          placeholder="Email"
+          value={formData.email}
           onChange={handleChange}
           className="w-full border border-gray-300 p-2 rounded"
           required
@@ -147,45 +164,23 @@ const Checkout = () => {
           required
         />
 
-        {/* Payment Information */}
-        <h3 className="text-2xl font-semibold mt-6 mb-2">Payment Information</h3>
-
-        <input
-          type="text"
-          name="cardNumber"
-          placeholder="Card Number"
-          value={formData.cardNumber}
+        {/* Note for the Order */}
+        <textarea
+          name="note"
+          placeholder="Add a note for the order (e.g., packaging instructions, delivery details)"
+          value={formData.note}
           onChange={handleChange}
           className="w-full border border-gray-300 p-2 rounded"
-          required
+          rows="4"
         />
 
-        <input
-          type="text"
-          name="expiryDate"
-          placeholder="Expiry Date (MM/YY)"
-          value={formData.expiryDate}
-          onChange={handleChange}
-          className="w-full border border-gray-300 p-2 rounded"
-          required
-        />
-
-        <input
-          type="text"
-          name="cvv"
-          placeholder="CVV"
-          value={formData.cvv}
-          onChange={handleChange}
-          className="w-full border border-gray-300 p-2 rounded"
-          required
-        />
-
-        {/* Place Order Button */}
+        {/* Paystack Payment Button */}
         <button
-          type="submit"
-          className="w-full bg-blue-500 text-white px-6 py-3 rounded-md shadow-md hover:bg-blue-600"
+          type="button"
+          onClick={handlePaystackPayment}
+          className="w-full bg-green-500 text-white px-6 py-3 rounded-md shadow-md hover:bg-green-600"
         >
-          Place Order
+          Pay with Paystack
         </button>
       </form>
     </div>
