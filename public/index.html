@@ -5,15 +5,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <meta name="description" content="E-commerce platform for a variety of products">
+  <meta name="author" content="Gatangu Enterprises">
+  <meta name="keywords" content="E-commerce, Gatangu, Products, Shop">
   <title>Gatangu Enterprises</title>
-  
+
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Poppins:wght@500;600&display=swap" rel="stylesheet">
-  
+
   <!-- Favicon -->
   <link rel="icon" type="image/jpeg" href="%PUBLIC_URL%/images/logo.jpg" />
+
+  <!-- Paystack Inline Script -->
   <script src="https://js.paystack.co/v1/inline.js"></script>
 
+  <!-- Ensure compatibility with React -->
+  <script>
+    // Log PaystackPop to verify it's loaded
+    window.onload = () => {
+      if (window.PaystackPop) {
+        console.log("PaystackPop script loaded successfully.");
+      } else {
+        console.error("PaystackPop script failed to load.");
+      }
+    };
+  </script>
 </head>
 <body class="bg-gray-100 text-gray-900">
   <noscript>You need to enable JavaScript to run this app.</noscript>

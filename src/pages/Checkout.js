@@ -1,206 +1,103 @@
 import React, { useState, useEffect } from 'react';
-import { useCart } from '../context/CartContext';
 
-const Checkout = () => {
-  const { cart, clearCart } = useCart();
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    address: '',
-    city: '',
-    postalCode: '',
-    country: '',
-    note: '',
-  });
-  const [scriptLoaded, setScriptLoaded] = useState(false);
-
-  const totalAmount = cart.reduce((total, item) => total + item.price * item.quantity, 0);
+function Checkout() {
+  const paystackPublicKey = 'pk_live_26d6ae7b0368c7e840c4f45d6d2e8d679317f833'; // Replace with your Paystack public key
+  const [email, setEmail] = useState('');
+  const [amount, setAmount] = useState('');
+  const [error, setError] = useState('');
+  const [paystackLoaded, setPaystackLoaded] = useState(false);
 
   useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://js.paystack.co/v1/inline.js';
-    script.async = true;
-    script.onload = () => setScriptLoaded(true);
-    script.onerror = () => {
-      console.error('Failed to load Paystack script.');
-      setScriptLoaded(false);
+    const loadPaystackSDK = () => {
+      if (!document.querySelector("script[src='https://js.paystack.co/v1/inline.js']")) {
+        const script = document.createElement('script');
+        script.src = 'https://js.paystack.co/v1/inline.js';
+        script.async = true;
+        script.onload = () => {
+          console.log('Paystack SDK loaded successfully');
+          setPaystackLoaded(true);
+        };
+        script.onerror = () => {
+          console.error('Failed to load Paystack SDK');
+        };
+        document.body.appendChild(script);
+      } else {
+        setPaystackLoaded(true); // Script is already loaded
+      }
     };
-    document.body.appendChild(script);
 
-    return () => {
-      document.body.removeChild(script);
-    };
+    loadPaystackSDK();
   }, []);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const handlePaystackPayment = () => {
-    if (!scriptLoaded) {
-      alert('Payment service is unavailable. Please try again later.');
+  const handlePaystackDonateClick = () => {
+    if (!email || !amount) {
+      setError('Please enter a valid email and amount.');
       return;
     }
 
+    if (!paystackLoaded || !window.PaystackPop?.setup) {
+      alert('Paystack SDK is not loaded. Please try again later.');
+      return;
+    }
+
+    setError('');
+
     const handler = window.PaystackPop.setup({
-      key: 'pk_live_26d6ae7b0368c7e840c4f45d6d2e8d679317f833', // Replace with your Paystack public key
-      email: formData.email,
-      amount: totalAmount * 100, // Amount in kobo
+      key: paystackPublicKey,
+      email: email,
+      amount: amount * 100, // Convert amount to kobo
       currency: 'KES',
-      onClose: () => {
-        alert('Payment window closed.');
-      },
-      callback: async (response) => {
+      callback: function (response) {
         alert(`Payment successful! Reference: ${response.reference}`);
-        console.log('Payment success:', response);
-
-        const orderData = {
-          customer: formData,
-          items: cart.map((item) => ({ productId: item.id, quantity: item.quantity })),
-          totalAmount,
-          note: formData.note,
-          paymentReference: response.reference,
-        };
-
-        try {
-          const apiUrl = `${process.env.REACT_APP_API_URL}/orders`;
-          const apiResponse = await fetch(apiUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(orderData),
-          });
-
-          if (apiResponse.ok) {
-            clearCart();
-            alert('Order placed successfully!');
-          } else {
-            alert('Failed to save order details. Please contact support.');
-          }
-        } catch (error) {
-          console.error('Error saving order details:', error);
-          alert('An error occurred. Please try again.');
-        }
+        setEmail('');
+        setAmount('');
+      },
+      onClose: function () {
+        alert('Payment window closed.');
       },
     });
 
-    handler.openIframe();
+    if (handler) {
+      handler.openIframe();
+    } else {
+      alert('Failed to initialize Paystack. Please try again.');
+    }
   };
 
   return (
-    <div
-      className="container mx-auto py-20"
-      style={{
-        fontFamily: `'Roboto', 'Poppins', sans-serif`,
-        paddingTop: '115px',
-        paddingBottom: '150px',
-      }}
-    >
-      <h2 className="text-3xl font-bold mb-6 text-center">Checkout</h2>
+    <div className="min-h-screen flex items-center justify-center text-center bg-gradient-to-r from-gray-100 via-gray-200 to-gray-300 p-8">
+      <div className="bg-white p-10 rounded-lg shadow-lg w-full max-w-md relative">
+        <h1 className="text-4xl font-bold mb-4">Checkout</h1>
+        <p className="text-lg mb-6">Complete your purchase using Paystack.</p>
 
-      {/* Cart Summary */}
-      <div className="bg-gray-100 p-4 rounded-lg shadow-md mb-6">
-        <h3 className="text-xl font-bold mb-4">Order Summary</h3>
-        {cart.map((item) => (
-          <div key={item.id} className="flex items-center justify-between mb-4">
-            <div>
-              <h4 className="font-medium">{item.name}</h4>
-              <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
-            </div>
-            <p className="font-bold">Ksh. {item.price * item.quantity}</p>
-          </div>
-        ))}
-        <div className="flex justify-between font-bold text-lg">
-          <p>Total:</p>
-          <p>Ksh. {totalAmount}</p>
-        </div>
-      </div>
-
-      <form onSubmit={(e) => e.preventDefault()} className="max-w-lg mx-auto space-y-4">
-        {/* Shipping Information */}
-        <h3 className="text-2xl font-semibold mb-2">Shipping Information</h3>
-
+        <h2 className="text-2xl font-semibold mb-4">Payment Details</h2>
         <input
-          type="text"
-          name="name"
-          placeholder="Full Name"
-          value={formData.name}
-          onChange={handleChange}
-          className="w-full border border-gray-300 p-2 rounded"
-          required
+          type="number"
+          placeholder="Enter amount (KES)"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          className="w-full mb-4 p-3 border rounded-lg text-center transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
-
         <input
           type="email"
-          name="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={handleChange}
-          className="w-full border border-gray-300 p-2 rounded"
-          required
+          placeholder="Enter your email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full mb-4 p-3 border rounded-lg text-center transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
 
-        <input
-          type="text"
-          name="address"
-          placeholder="Address"
-          value={formData.address}
-          onChange={handleChange}
-          className="w-full border border-gray-300 p-2 rounded"
-          required
-        />
+        {error && <p className="text-red-500 mb-4">{error}</p>}
 
-        <input
-          type="text"
-          name="city"
-          placeholder="City"
-          value={formData.city}
-          onChange={handleChange}
-          className="w-full border border-gray-300 p-2 rounded"
-          required
-        />
-
-        <input
-          type="text"
-          name="postalCode"
-          placeholder="Postal Code"
-          value={formData.postalCode}
-          onChange={handleChange}
-          className="w-full border border-gray-300 p-2 rounded"
-          required
-        />
-
-        <input
-          type="text"
-          name="country"
-          placeholder="Country"
-          value={formData.country}
-          onChange={handleChange}
-          className="w-full border border-gray-300 p-2 rounded"
-          required
-        />
-
-        {/* Note for the Order */}
-        <textarea
-          name="note"
-          placeholder="Add a note for the order (e.g., packaging instructions, delivery details)"
-          value={formData.note}
-          onChange={handleChange}
-          className="w-full border border-gray-300 p-2 rounded"
-          rows="4"
-        />
-
-        {/* Paystack Payment Button */}
         <button
-          type="button"
-          onClick={handlePaystackPayment}
-          className="w-full bg-green-500 text-white px-6 py-3 rounded-md shadow-md hover:bg-green-600"
+          className="bg-green-600 w-full px-8 py-3 rounded-lg text-white hover:bg-green-700 transform transition duration-200 ease-in-out hover:scale-105"
+          onClick={handlePaystackDonateClick}
+          disabled={!email || !amount || !paystackLoaded}
         >
           Pay with Paystack
         </button>
-      </form>
+      </div>
     </div>
   );
-};
+}
 
 export default Checkout;
