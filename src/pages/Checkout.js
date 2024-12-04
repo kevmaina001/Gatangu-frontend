@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useCart } from '../context/CartContext'; // Access the cart context
 
 const Checkout = () => {
@@ -12,6 +12,20 @@ const Checkout = () => {
     country: '',
     note: '', // Added note field for user instructions
   });
+  const [scriptLoaded, setScriptLoaded] = useState(false);
+
+  // Dynamically load the Paystack script
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = 'https://js.paystack.co/v1/inline.js';
+    script.async = true;
+    script.onload = () => setScriptLoaded(true);
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
   // Calculate total amount
   const totalAmount = cart.reduce((total, item) => total + item.price * item.quantity, 0);
@@ -24,18 +38,23 @@ const Checkout = () => {
 
   // Handle Paystack payment
   const handlePaystackPayment = () => {
+    if (!scriptLoaded) {
+      alert('Paystack script is not loaded yet. Please try again.');
+      return;
+    }
+
     const handler = window.PaystackPop.setup({
       key: 'pk_live_26d6ae7b0368c7e840c4f45d6d2e8d679317f833', // Replace with your Paystack public key
       email: formData.email,
-      amount: totalAmount, // Paystack requires the amount in kobo (multiplied by 100)
+      amount: totalAmount * 100, // Paystack requires the amount in kobo (multiplied by 100)
       currency: 'KES', // Adjust to your currency
       onClose: () => {
         alert('Payment window closed.');
       },
       callback: async (response) => {
-        console.log('Payment Success:', response);
         alert(`Payment successful! Reference: ${response.reference}`);
-  
+        console.log('Payment Success:', response);
+
         // Prepare order data
         const orderData = {
           customer: formData,
@@ -44,7 +63,7 @@ const Checkout = () => {
           note: formData.note,
           paymentReference: response.reference,
         };
-  
+
         try {
           // Send order details to the backend
           const apiUrl = `${process.env.REACT_APP_API_URL}/orders`;
@@ -53,7 +72,7 @@ const Checkout = () => {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(orderData),
           });
-  
+
           const data = await apiResponse.json();
           if (apiResponse.ok) {
             clearCart(); // Clear the cart after successful order placement
@@ -67,10 +86,10 @@ const Checkout = () => {
         }
       },
     });
-  
+
     handler.openIframe();
   };
-  
+
   return (
     <div
       className="container mx-auto py-20"
