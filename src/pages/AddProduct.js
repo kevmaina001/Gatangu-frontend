@@ -25,13 +25,7 @@ const AddProduct = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Ensure all fields are valid
-    if (!productData.name || !productData.price || !productData.category || !productData.image) {
-      alert('Please fill out all required fields and upload an image.');
-      return;
-    }
-
+  
     const formData = new FormData();
     formData.append('name', productData.name);
     formData.append('price', productData.price);
@@ -39,15 +33,18 @@ const AddProduct = () => {
     formData.append('quantityScale', productData.quantityScale);
     formData.append('description', productData.description);
     formData.append('image', productData.image);
-
-    setLoading(true); // Start loading
+  
+    console.log('Submitting product:', Object.fromEntries(formData.entries()));
+  
     try {
       const response = await fetch(`${BASE_URL}/products`, {
         method: 'POST',
         body: formData,
       });
-
+  
       const data = await response.json();
+      console.log('Response from server:', data);
+  
       if (response.ok) {
         alert('Product added successfully');
         setProductData({
@@ -59,17 +56,15 @@ const AddProduct = () => {
           image: null,
         });
       } else {
-        // Display server error messages
-        console.error('Error Response:', data);
+        console.error('Server Error:', data);
         alert(`Failed to add product: ${data.message || 'Unknown error occurred'}`);
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Network Error:', error);
       alert('An error occurred while adding the product. Please try again later.');
-    } finally {
-      setLoading(false); // Stop loading
     }
   };
+  
 
   return (
     <div className="container mx-auto pt-32">
