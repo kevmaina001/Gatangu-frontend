@@ -9,8 +9,10 @@ const AddProduct = () => {
     description: '',
     image: null,
   });
+  const [loading, setLoading] = useState(false);
 
-  const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
+  // Use the environment variable or fallback to localhost for BASE_URL
+  const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api';
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -23,6 +25,13 @@ const AddProduct = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Ensure all fields are valid
+    if (!productData.name || !productData.price || !productData.category || !productData.image) {
+      alert('Please fill out all required fields and upload an image.');
+      return;
+    }
+
     const formData = new FormData();
     formData.append('name', productData.name);
     formData.append('price', productData.price);
@@ -31,11 +40,14 @@ const AddProduct = () => {
     formData.append('description', productData.description);
     formData.append('image', productData.image);
 
+    setLoading(true); // Start loading
     try {
       const response = await fetch(`${BASE_URL}/products`, {
         method: 'POST',
         body: formData,
       });
+
+      const data = await response.json();
       if (response.ok) {
         alert('Product added successfully');
         setProductData({
@@ -47,11 +59,15 @@ const AddProduct = () => {
           image: null,
         });
       } else {
-        alert('Failed to add product');
+        // Display server error messages
+        console.error('Error Response:', data);
+        alert(`Failed to add product: ${data.message || 'Unknown error occurred'}`);
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('An error occurred while adding the product');
+      alert('An error occurred while adding the product. Please try again later.');
+    } finally {
+      setLoading(false); // Stop loading
     }
   };
 
@@ -135,7 +151,6 @@ const AddProduct = () => {
             value={productData.quantityScale}
             onChange={handleChange}
             className="w-full px-4 py-2 border rounded-md"
-            required
           >
             <option value="" disabled>Select a scale</option>
             <option value="Kg">Kg</option>
@@ -152,7 +167,6 @@ const AddProduct = () => {
             value={productData.description}
             onChange={handleChange}
             className="w-full px-4 py-2 border rounded-md"
-            required
           />
         </div>
         <div>
@@ -166,7 +180,13 @@ const AddProduct = () => {
             required
           />
         </div>
-        <button type="submit" className="px-6 py-2 bg-primary text-white rounded-md">Add Product</button>
+        <button
+          type="submit"
+          className={`px-6 py-2 rounded-md ${loading ? 'bg-gray-400' : 'bg-primary text-white'} `}
+          disabled={loading}
+        >
+          {loading ? 'Submitting...' : 'Add Product'}
+        </button>
       </form>
     </div>
   );
