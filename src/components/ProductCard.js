@@ -6,7 +6,7 @@ const ProductCard = ({ product }) => {
   const baseURL =
     window.location.hostname === 'localhost'
       ? 'http://localhost:5000'
-      : 'https://gatangu-backend-1.onrender.com/api';
+      : 'https://gatangu-backend-1.onrender.com';
 
   return (
     <Link
