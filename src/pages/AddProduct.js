@@ -32,7 +32,7 @@ const AddProduct = () => {
     formData.append('image', productData.image);
 
     try {
-      const response = await fetch(`${BASE_URL}/api/products`, {
+      const response = await fetch(`${BASE_URL}/products`, {
         method: 'POST',
         body: formData,
       });
