@@ -1,103 +1,115 @@
 import React, { useState, useEffect } from 'react';
+import { useCart } from '../context/CartContext'; // Access the cart context
 
-function Checkout() {
-  const paystackPublicKey = 'pk_live_26d6ae7b0368c7e840c4f45d6d2e8d679317f833'; // Replace with your Paystack public key
-  const [email, setEmail] = useState('');
-  const [amount, setAmount] = useState('');
-  const [error, setError] = useState('');
-  const [paystackLoaded, setPaystackLoaded] = useState(false);
+const Checkout = () => {
+  const { cart, clearCart } = useCart(); // Access cart data and clearCart function
+  const [formData, setFormData] = useState({
+    name: '',
+    location: '',
+    note: '',
+  });
 
-  useEffect(() => {
-    const loadPaystackSDK = () => {
-      if (!document.querySelector("script[src='https://js.paystack.co/v1/inline.js']")) {
-        const script = document.createElement('script');
-        script.src = 'https://js.paystack.co/v1/inline.js';
-        script.async = true;
-        script.onload = () => {
-          console.log('Paystack SDK loaded successfully');
-          setPaystackLoaded(true);
-        };
-        script.onerror = () => {
-          console.error('Failed to load Paystack SDK');
-        };
-        document.body.appendChild(script);
-      } else {
-        setPaystackLoaded(true); // Script is already loaded
-      }
-    };
-
-    loadPaystackSDK();
-  }, []);
-
-  const handlePaystackDonateClick = () => {
-    if (!email || !amount) {
-      setError('Please enter a valid email and amount.');
-      return;
-    }
-
-    if (!paystackLoaded || !window.PaystackPop?.setup) {
-      alert('Paystack SDK is not loaded. Please try again later.');
-      return;
-    }
-
-    setError('');
-
-    const handler = window.PaystackPop.setup({
-      key: paystackPublicKey,
-      email: email,
-      amount: amount * 100, // Convert amount to kobo
-      currency: 'KES',
-      callback: function (response) {
-        alert(`Payment successful! Reference: ${response.reference}`);
-        setEmail('');
-        setAmount('');
-      },
-      onClose: function () {
-        alert('Payment window closed.');
-      },
-    });
-
-    if (handler) {
-      handler.openIframe();
-    } else {
-      alert('Failed to initialize Paystack. Please try again.');
-    }
+  // Handle form input changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
   };
 
+  // Calculate total amount
+  const totalAmount = cart.reduce((total, item) => total + item.price * item.quantity, 0);
+
+  // Show an error message if the cart is empty
+  useEffect(() => {
+    if (cart.length === 0) {
+      alert('Your cart is empty! Please add items to proceed.');
+    }
+  }, [cart]);
+
   return (
-    <div className="min-h-screen flex items-center justify-center text-center bg-gradient-to-r from-gray-100 via-gray-200 to-gray-300 p-8">
-      <div className="bg-white p-10 rounded-lg shadow-lg w-full max-w-md relative">
-        <h1 className="text-4xl font-bold mb-4">Checkout</h1>
-        <p className="text-lg mb-6">Complete your purchase using Paystack.</p>
+    <div
+      className="container mx-auto py-20"
+      style={{
+        fontFamily: `'Roboto', 'Poppins', sans-serif`,
+        paddingTop: '115px',
+        paddingBottom: '150px',
+      }}
+    >
+      <h2 className="text-3xl font-bold mb-6 text-center">Checkout</h2>
 
-        <h2 className="text-2xl font-semibold mb-4">Payment Details</h2>
-        <input
-          type="number"
-          placeholder="Enter amount (KES)"
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          className="w-full mb-4 p-3 border rounded-lg text-center transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <input
-          type="email"
-          placeholder="Enter your email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full mb-4 p-3 border rounded-lg text-center transition duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
+      {/* Cart Summary */}
+      {cart.length > 0 ? (
+        <div className="bg-gray-100 p-4 rounded-lg shadow-md mb-6">
+          <h3 className="text-xl font-bold mb-4">Order Summary</h3>
+          {cart.map((item) => (
+            <div key={item._id} className="flex items-center justify-between mb-4">
+              <div>
+                <h4 className="font-medium">{item.name}</h4>
+                <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
+              </div>
+              <p className="font-bold">Ksh. {item.price * item.quantity}</p>
+            </div>
+          ))}
+          <div className="flex justify-between font-bold text-lg">
+            <p>Total:</p>
+            <p>Ksh. {totalAmount}</p>
+          </div>
+        </div>
+      ) : (
+        <p className="text-center text-red-500">Your cart is empty.</p>
+      )}
 
-        {error && <p className="text-red-500 mb-4">{error}</p>}
+      {/* Checkout Form */}
+      {cart.length > 0 && (
+        <form onSubmit={(e) => e.preventDefault()} className="max-w-lg mx-auto space-y-4">
+          <h3 className="text-2xl font-semibold mb-2">Shipping Information</h3>
 
-        <button
-          className="bg-green-600 w-full px-8 py-3 rounded-lg text-white hover:bg-green-700 transform transition duration-200 ease-in-out hover:scale-105"
-          onClick={handlePaystackDonateClick}
-          disabled={!email || !amount || !paystackLoaded}
-        >
-          Pay with Paystack
-        </button>
-      </div>
+          {/* Name Input */}
+          <input
+            type="text"
+            name="name"
+            placeholder="Full Name"
+            value={formData.name}
+            onChange={handleChange}
+            className="w-full border border-gray-300 p-2 rounded"
+            required
+          />
+
+          {/* Location Input */}
+          <input
+            type="text"
+            name="location"
+            placeholder="Location"
+            value={formData.location}
+            onChange={handleChange}
+            className="w-full border border-gray-300 p-2 rounded"
+            required
+          />
+
+          {/* Note for the Order */}
+          <textarea
+            name="note"
+            placeholder="Add a note for the order (e.g., delivery instructions)"
+            value={formData.note}
+            onChange={handleChange}
+            className="w-full border border-gray-300 p-2 rounded"
+            rows="4"
+          />
+
+          {/* Submit Order */}
+          <button
+            type="button"
+            onClick={() => {
+              alert('Order placed successfully!');
+              clearCart(); // Clear cart after order placement
+            }}
+            className="w-full bg-blue-500 text-white px-6 py-3 rounded-md shadow-md hover:bg-blue-600"
+          >
+            Place Order
+          </button>
+        </form>
+      )}
     </div>
   );
-}
+};
 
 export default Checkout;

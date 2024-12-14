@@ -54,7 +54,7 @@ const AddProduct = () => {
   };
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="container mx-auto pt-32">
       <h1 className="text-2xl font-bold mb-6">Add Product</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -92,9 +92,37 @@ const AddProduct = () => {
             required
           >
             <option value="" disabled>Select a category</option>
-            <option value="Groceries">Groceries</option>
-            <option value="Personal Care">Personal Care</option>
-            <option value="Household Supplies">Household Supplies</option>
+            {[
+              'Airtime',
+              'Animal Feeds',
+              'Animal Health',
+              'Baby Hygiene',
+              'Bakery',
+              'Beverages',
+              'Cereals & Ext.',
+              'Cigarettes',
+              'Confectionery',
+              'Display Dept',
+              'Farm Inputs',
+              'Fats & Oils',
+              'Flour & Rice',
+              'Food Additives',
+              'Groceries',
+              'Hardware',
+              'Household',
+              'Lighters',
+              'Lightings',
+              'Medicine',
+              'Milk',
+              'Packaging',
+              'Personal Care',
+              'Spreads',
+              'Stationery',
+              'Warehouse',
+              'Wholesale',
+            ].map((category) => (
+              <option key={category} value={category}>{category}</option>
+            ))}
           </select>
         </div>
         <div>

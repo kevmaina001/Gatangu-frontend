@@ -9,15 +9,35 @@ import 'swiper/css/pagination';
 const Home = () => {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [error, setError] = useState(false);
-  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
   const categories = [
+    'Airtime',
+    'Animal Feeds',
+    'Animal Health',
+    'Baby Hygiene',
+    'Bakery',
+    'Beverages',
+    'Cereals & Ext.',
+    'Cigarettes',
+    'Confectionery',
+    'Display Dept',
+    'Farm Inputs',
+    'Fats & Oils',
+    'Flour & Rice',
+    'Food Additives',
     'Groceries',
+    'Hardware',
+    'Household',
+    'Lighters',
+    'Lightings',
+    'Medicine',
+    'Milk',
+    'Packaging',
     'Personal Care',
-    'Household Supplies',
-    'Snacks & Beverages',
-    'Baby Products',
-    'Health & Wellness',
+    'Spreads',
+    'Stationery',
+    'Warehouse',
+    'Wholesale',
   ];
 
   const sliderImages = [
@@ -31,7 +51,7 @@ const Home = () => {
     const fetchProducts = async () => {
       try {
         const response = await api.get('/products');
-        setFeaturedProducts(response.data.slice(0, 8));
+        setFeaturedProducts(response.data.slice(0, 13)); // Fetch the first 13 products
         setError(false);
       } catch (error) {
         setError(true);
@@ -47,26 +67,18 @@ const Home = () => {
       style={{
         backgroundColor: '#f1f1f1', // Light grey
         color: '#333', // Darker text for contrast
-        paddingTop: '200px', // Adjust this value based on your navbar height
-        paddingBottom: '100px', // To add spacing for footer visibility
-    }}
+        paddingTop: '200px', // Adjust based on your navbar height
+        paddingBottom: '100px', // Spacing for footer visibility
+      }}
     >
-      {/* Mobile Sidebar Toggle */}
-      <button
-        className="md:hidden bg-yellow-500 text-white px-4 py-2 rounded-md mb-4"
-        onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-      >
-        {isMobileSidebarOpen ? 'Close Categories' : 'Open Categories'}
-      </button>
-
+      {/* Layout with Sidebar and Main Content */}
       <div className="flex flex-col md:flex-row">
-        {/* Sidebar */}
+        {/* Sidebar only visible on larger screens */}
         <aside
-          className={`fixed top-0 left-0 h-full bg-gray-100 transform ${
-            isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-          } transition-transform md:static md:translate-x-0 w-3/4 md:w-1/4 p-4 z-50`}
+          className="md:h-full md:w-1/4 p-4 hidden md:block" // Hide on mobile and show on desktop
           style={{
-            zIndex: 10, // Ensure the sidebar is above the slider
+            position: 'sticky',
+            top: '0px', // Stick the sidebar to the top
           }}
         >
           <h2 className="text-xl font-bold mb-4">Categories</h2>
@@ -81,20 +93,9 @@ const Home = () => {
           </ul>
         </aside>
 
-        {/* Overlay for Mobile Sidebar */}
-        {isMobileSidebarOpen && (
-          <div
-            className="fixed inset-0 bg-black opacity-50 z-40"
-            onClick={() => setIsMobileSidebarOpen(false)}
-            style={{
-              zIndex: 999, // Ensure overlay is below the sidebar
-            }}
-          ></div>
-        )}
-
         {/* Main Content */}
-        <main className="w-full md:w-3/4 md:ml-auto">
-          {/* Image Slider */}
+        <main className="flex-1 md:w-3/4">
+          {/* Slider Section */}
           <div className="mb-8 mx-auto rounded-lg overflow-hidden" style={{ maxWidth: '90%' }}>
             <Swiper
               modules={[Pagination, Autoplay]}
@@ -115,21 +116,21 @@ const Home = () => {
               ))}
             </Swiper>
           </div>
-        </main>
-      </div>
 
-      {/* Featured Products Section */}
-      <div className="my-8 px-4 md:px-12">
-        <h2 className="text-xl font-bold mb-6 text-gray-800 font-roboto-slab">Featured Products</h2>
-        {error ? (
-          <p className="text-red-500">Failed to fetch products. Please try again.</p>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-            {featuredProducts.map((product) => (
-              <ProductCard key={product._id} product={product} />
-            ))}
+          {/* Featured Products Section */}
+          <div className="my-8 px-4 md:px-12">
+            <h2 className="text-xl font-bold mb-6 text-gray-800 font-roboto-slab">Featured Products</h2>
+            {error ? (
+              <p className="text-red-500">Failed to fetch products. Please try again.</p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
+                {featuredProducts.map((product) => (
+                  <ProductCard key={product._id} product={product} />
+                ))}
+              </div>
+            )}
           </div>
-        )}
+        </main>
       </div>
     </div>
   );

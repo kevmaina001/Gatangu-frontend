@@ -2,6 +2,12 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 const ProductCard = ({ product }) => {
+  // Determine base URL based on the environment
+  const baseURL =
+    window.location.hostname === 'localhost'
+      ? 'http://localhost:5000'
+      : 'https://gatangu-backend-1.onrender.com';
+
   return (
     <Link
       to={`/products/${product._id}`}
@@ -20,7 +26,7 @@ const ProductCard = ({ product }) => {
         }}
       >
         <img
-          src={`https://gatangu-backend-1.onrender.com/${product.image}`}
+          src={`${baseURL}/${product.image}`} // Use the dynamically determined base URL
           alt={product.name}
           className="object-cover"
           style={{

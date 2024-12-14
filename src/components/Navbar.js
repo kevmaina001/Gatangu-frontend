@@ -42,12 +42,42 @@ const Navbar = () => {
     }
   };
 
-  return (
-          <header
-        className="bg-gray-800 text-gray-100 fixed top-0 left-0 w-full z-50 shadow-lg"
-        style={{ fontFamily: `'Roboto', sans-serif` }}
-      >
+  // Updated categories list
+  const categories = [
+    'Airtime',
+    'Animal Feeds',
+    'Animal Health',
+    'Baby Hygiene',
+    'Bakery',
+    'Beverages',
+    'Cereals & Ext.',
+    'Cigarettes',
+    'Confectionery',
+    'Display Dept',
+    'Farm Inputs',
+    'Fats & Oils',
+    'Flour & Rice',
+    'Food Additives',
+    'Groceries',
+    'Hardware',
+    'Household',
+    'Lighters',
+    'Lightings',
+    'Medicine',
+    'Milk',
+    'Packaging',
+    'Personal Care',
+    'Spreads',
+    'Stationery',
+    'Warehouse',
+    'Wholesale',
+  ];
 
+  return (
+    <header
+      className="bg-gray-800 text-gray-100 fixed top-0 left-0 w-full z-50 shadow-lg"
+      style={{ fontFamily: `'Roboto', sans-serif` }}
+    >
       {/* Top Bar */}
       <div className="container mx-auto flex justify-end items-center py-2 text-sm">
         <span>0724-526-080</span>
@@ -63,7 +93,6 @@ const Navbar = () => {
             src="/images/logo.jpg"
             alt="Logo"
             className="w-20 h-20 md:w-24 md:h-24 rounded-lg"
-
           />
         </Link>
 
@@ -101,33 +130,17 @@ const Navbar = () => {
             {categoriesOpen && (
               <div className="absolute left-0 mt-2 w-56 bg-white text-secondary rounded-md shadow-lg z-10">
                 <ul className="py-2">
-                  <li>
-                    <Link
-                      to="/category/groceries"
-                      className="block px-4 py-2 hover:bg-gray-100"
-                      onClick={toggleCategories}
-                    >
-                      Groceries
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      to="/category/personal-care"
-                      className="block px-4 py-2 hover:bg-gray-100"
-                      onClick={toggleCategories}
-                    >
-                      Personal Care
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      to="/category/household-supplies"
-                      className="block px-4 py-2 hover:bg-gray-100"
-                      onClick={toggleCategories}
-                    >
-                      Household Supplies
-                    </Link>
-                  </li>
+                  {categories.map((category, index) => (
+                    <li key={index}>
+                      <Link
+                        to={`/category/${category.toLowerCase().replace(/ /g, '-')}`}
+                        className="block px-4 py-2 hover:bg-gray-100"
+                        onClick={toggleCategories}
+                      >
+                        {category}
+                      </Link>
+                    </li>
+                  ))}
                 </ul>
               </div>
             )}
@@ -247,34 +260,19 @@ const Navbar = () => {
               </button>
             </form>
 
+            {/* Mobile Categories */}
             <ul className="space-y-4">
-              <li>
-                <Link
-                  to="/category/groceries"
-                  onClick={toggleMenu}
-                  className="block px-4 py-2 hover:bg-gray-100"
-                >
-                  Groceries
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/category/personal-care"
-                  onClick={toggleMenu}
-                  className="block px-4 py-2 hover:bg-gray-100"
-                >
-                  Personal Care
-                </Link>
-              </li>
-              <li>
-                <Link
-                  to="/category/household-supplies"
-                  onClick={toggleMenu}
-                  className="block px-4 py-2 hover:bg-gray-100"
-                >
-                  Household Supplies
-                </Link>
-              </li>
+              {categories.map((category, index) => (
+                <li key={index}>
+                  <Link
+                    to={`/category/${category.toLowerCase().replace(/ /g, '-')}`}
+                    onClick={toggleMenu}
+                    className="block px-4 py-2 hover:bg-gray-100"
+                  >
+                    {category}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
         </div>

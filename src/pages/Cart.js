@@ -1,73 +1,38 @@
 import React, { useState } from 'react';
-import { useCart } from '../context/CartContext'; // Access the cart context
+import { useCart } from '../context/CartContext';
+import { Link } from 'react-router-dom';
 
-const Checkout = () => {
-  const { cart, clearCart } = useCart(); // Access cart data and clearCart function
+const CartPage = () => {
+  const { cart, removeFromCart, updateQuantity, clearCart } = useCart(); // Access cart data and methods
+  const [showCheckout, setShowCheckout] = useState(false); // State to toggle checkout form
   const [formData, setFormData] = useState({
     name: '',
-    email: '',
-    address: '',
-    city: '',
-    postalCode: '',
-    country: '',
-    note: '', // Added note field for user instructions
+    location: '',
+    note: '',
   });
 
   // Calculate total amount
   const totalAmount = cart.reduce((total, item) => total + item.price * item.quantity, 0);
 
+  // Handle quantity change
+  const handleQuantityChange = (productId, newQuantity) => {
+    updateQuantity(productId, parseInt(newQuantity, 10));
+  };
+
   // Handle form input changes
-  const handleChange = (e) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
 
-  // Handle Paystack payment
-  const handlePaystackPayment = () => {
-    const paystack = new window.PaystackPop();
-
-    paystack.newTransaction({
-      key: 'pk_live_26d6ae7b0368c7e840c4f45d6d2e8d679317f833', // Replace with your Paystack public key
-      email: formData.email,
-      amount: totalAmount, // Paystack expects amount in kobo (for NGN)
-      currency: 'KES', // Change to your preferred currency
-      onSuccess: async (transaction) => {
-        console.log('Payment Success:', transaction);
-        alert(`Payment successful! Reference: ${transaction.reference}`);
-
-        // Prepare order data
-        const orderData = {
-          customer: formData,
-          items: cart.map((item) => ({ productId: item.id, quantity: item.quantity })),
-          totalAmount,
-          note: formData.note,
-          paymentReference: transaction.reference,
-        };
-
-        try {
-          // Send order details to the backend
-          const response = await fetch(`${process.env.REACT_APP_API_URL}/orders`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(orderData),
-          });
-
-          const data = await response.json();
-          if (response.ok) {
-            clearCart(); // Clear the cart after successful order placement
-            alert('Order placed successfully!');
-          } else {
-            alert('Failed to save order details. Please contact support.');
-          }
-        } catch (error) {
-          console.error('Error saving order details:', error);
-          alert('An error occurred while saving your order. Please try again.');
-        }
-      },
-      onCancel: () => {
-        alert('Payment canceled.');
-      },
-    });
+  // Handle checkout submission
+  const handleCheckout = () => {
+    alert(`Order placed successfully! 
+    Name: ${formData.name} 
+    Location: ${formData.location} 
+    Note: ${formData.note}`);
+    clearCart(); // Clear the cart after placing the order
+    setShowCheckout(false); // Hide the checkout form
   };
 
   return (
@@ -79,111 +44,135 @@ const Checkout = () => {
         paddingBottom: '150px',
       }}
     >
-      <h2 className="text-3xl font-bold mb-6 text-center">Checkout</h2>
+      <h2 className="text-3xl font-bold mb-6 text-center">Shopping Cart</h2>
 
-      {/* Cart Summary */}
-      <div className="bg-gray-100 p-4 rounded-lg shadow-md mb-6">
-        <h3 className="text-xl font-bold mb-4">Order Summary</h3>
-        {cart.map((item) => (
-          <div key={item.id} className="flex items-center justify-between mb-4">
-            <div>
-              <h4 className="font-medium">{item.name}</h4>
-              <p className="text-sm text-gray-600">Quantity: {item.quantity}</p>
-            </div>
-            <p className="font-bold">Ksh. {item.price * item.quantity}</p>
+      {cart.length > 0 ? (
+        <>
+         {/* Cart Items */}
+          <div className="bg-gray-100 p-4 rounded-lg shadow-md mb-6">
+            {cart.map((item) => {
+              const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000';
+
+              return (
+                <div
+                  key={item._id}
+                  className="flex items-center justify-between mb-4 bg-white p-4 rounded-lg shadow-sm"
+                >
+                  <div className="flex items-center space-x-4">
+                    <img
+                      src={item.image ? `${BASE_URL}/${item.image}` : '/images/placeholder.jpg'}
+                      alt={item.name}
+                      className="w-20 h-20 object-cover rounded-lg"
+                    />
+                    <div>
+                      <h4 className="font-medium">{item.name}</h4>
+                      <p className="text-sm text-gray-600">Price: Ksh. {item.price}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    {/* Quantity Input */}
+                    <input
+                      type="number"
+                      value={item.quantity}
+                      min="1"
+                      onChange={(e) => handleQuantityChange(item._id, e.target.value)}
+                      className="w-16 text-center border border-gray-300 rounded-md"
+                    />
+                    {/* Remove Button */}
+                    <button
+                      onClick={() => removeFromCart(item._id)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <p className="font-bold">Ksh. {item.price * item.quantity}</p>
+                </div>
+              );
+            })}
           </div>
-        ))}
-        <div className="flex justify-between font-bold text-lg">
-          <p>Total:</p>
-          <p>Ksh. {totalAmount}</p>
-        </div>
-      </div>
 
-      <form onSubmit={(e) => e.preventDefault()} className="max-w-lg mx-auto space-y-4">
-        {/* Shipping Information */}
-        <h3 className="text-2xl font-semibold mb-2">Shipping Information</h3>
 
-        <input
-          type="text"
-          name="name"
-          placeholder="Full Name"
-          value={formData.name}
-          onChange={handleChange}
-          className="w-full border border-gray-300 p-2 rounded"
-          required
-        />
+          {/* Total and Checkout */}
+          <div className="bg-white p-4 rounded-lg shadow-md flex flex-col items-end space-y-4">
+            <div className="text-lg font-bold flex justify-between w-full">
+              <span>Total:</span>
+              <span>Ksh. {totalAmount}</span>
+            </div>
+            <div className="flex space-x-4">
+              {/* Clear Cart */}
+              <button
+                onClick={clearCart}
+                className="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+              >
+                Clear Cart
+              </button>
+              {/* Toggle Checkout Form */}
+              <button
+                onClick={() => setShowCheckout(!showCheckout)}
+                className="bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600"
+              >
+                {showCheckout ? 'Cancel Checkout' : 'Proceed to Checkout'}
+              </button>
+            </div>
+          </div>
 
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          value={formData.email}
-          onChange={handleChange}
-          className="w-full border border-gray-300 p-2 rounded"
-          required
-        />
+          {/* Checkout Form */}
+          {showCheckout && (
+            <div className="bg-gray-100 p-4 rounded-lg shadow-md mt-6 w-full md:w-1/2 mx-auto">
+              <h3 className="text-xl font-bold mb-4">Checkout Details</h3>
+              <form onSubmit={(e) => e.preventDefault()} className="space-y-4">
+                {/* Name Input */}
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Full Name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 p-2 rounded"
+                  required
+                />
 
-        <input
-          type="text"
-          name="address"
-          placeholder="Address"
-          value={formData.address}
-          onChange={handleChange}
-          className="w-full border border-gray-300 p-2 rounded"
-          required
-        />
+                {/* Location Input */}
+                <input
+                  type="text"
+                  name="location"
+                  placeholder="Location"
+                  value={formData.location}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 p-2 rounded"
+                  required
+                />
 
-        <input
-          type="text"
-          name="city"
-          placeholder="City"
-          value={formData.city}
-          onChange={handleChange}
-          className="w-full border border-gray-300 p-2 rounded"
-          required
-        />
+                {/* Note for the Order */}
+                <textarea
+                  name="note"
+                  placeholder="Add a note for the order (e.g., delivery instructions)"
+                  value={formData.note}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 p-2 rounded"
+                  rows="4"
+                />
 
-        <input
-          type="text"
-          name="postalCode"
-          placeholder="Postal Code"
-          value={formData.postalCode}
-          onChange={handleChange}
-          className="w-full border border-gray-300 p-2 rounded"
-          required
-        />
-
-        <input
-          type="text"
-          name="country"
-          placeholder="Country"
-          value={formData.country}
-          onChange={handleChange}
-          className="w-full border border-gray-300 p-2 rounded"
-          required
-        />
-
-        {/* Note for the Order */}
-        <textarea
-          name="note"
-          placeholder="Add a note for the order (e.g., packaging instructions, delivery details)"
-          value={formData.note}
-          onChange={handleChange}
-          className="w-full border border-gray-300 p-2 rounded"
-          rows="4"
-        />
-
-        {/* Paystack Payment Button */}
-        <button
-          type="button"
-          onClick={handlePaystackPayment}
-          className="w-full bg-green-500 text-white px-6 py-3 rounded-md shadow-md hover:bg-green-600"
-        >
-          Pay with Paystack
-        </button>
-      </form>
+                {/* Submit Checkout */}
+                <button
+                  type="button"
+                  onClick={handleCheckout}
+                  className="w-full bg-blue-500 text-white px-6 py-3 rounded-md shadow-md hover:bg-blue-600"
+                >
+                  Place Order
+                </button>
+              </form>
+            </div>
+          )}
+        </>
+      ) : (
+        <p className="text-center text-gray-500">
+          Your cart is empty. <Link to="/" className="text-green-500 hover:underline">Go shopping</Link>
+        </p>
+      )}
     </div>
   );
 };
 
-export default Checkout;
+export default CartPage;
