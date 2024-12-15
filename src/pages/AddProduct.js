@@ -10,22 +10,28 @@ const AddProduct = () => {
     image: null,
   });
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState({ text: '', type: '' }); // Message state for feedback
 
-  // Use the environment variable or fallback to localhost for BASE_URL
-  const BASE_URL = process.env.REACT_APP_API_BASE_URL || 'http://localhost:5000/api';
+  // Correct API URL
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
+  // Handle input field changes
   const handleChange = (e) => {
     const { name, value } = e.target;
     setProductData({ ...productData, [name]: value });
   };
 
+  // Handle file selection
   const handleFileChange = (e) => {
     setProductData({ ...productData, image: e.target.files[0] });
   };
 
+  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-  
+    setLoading(true); // Show loading state
+    setMessage({ text: '', type: '' });
+
     const formData = new FormData();
     formData.append('name', productData.name);
     formData.append('price', productData.price);
@@ -33,20 +39,18 @@ const AddProduct = () => {
     formData.append('quantityScale', productData.quantityScale);
     formData.append('description', productData.description);
     formData.append('image', productData.image);
-  
-    console.log('Submitting product:', Object.fromEntries(formData.entries()));
-  
+
     try {
-      const response = await fetch(`${BASE_URL}/products`, {
+      const response = await fetch(`${API_URL}/products`, {
         method: 'POST',
         body: formData,
       });
-  
+
       const data = await response.json();
-      console.log('Response from server:', data);
-  
+      console.log('Response:', data);
+
       if (response.ok) {
-        alert('Product added successfully');
+        setMessage({ text: 'Product added successfully!', type: 'success' });
         setProductData({
           name: '',
           price: '',
@@ -56,19 +60,31 @@ const AddProduct = () => {
           image: null,
         });
       } else {
-        console.error('Server Error:', data);
-        alert(`Failed to add product: ${data.message || 'Unknown error occurred'}`);
+        setMessage({ text: `Failed to add product: ${data.message || 'Unknown error'}`, type: 'error' });
       }
     } catch (error) {
-      console.error('Network Error:', error);
-      alert('An error occurred while adding the product. Please try again later.');
+      console.error('Error:', error);
+      setMessage({ text: 'A network error occurred. Please try again later.', type: 'error' });
+    } finally {
+      setLoading(false);
     }
   };
-  
 
   return (
     <div className="container mx-auto pt-32">
       <h1 className="text-2xl font-bold mb-6">Add Product</h1>
+
+      {/* Display success/error messages */}
+      {message.text && (
+        <div
+          className={`p-4 mb-4 rounded ${
+            message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+          }`}
+        >
+          {message.text}
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="name" className="block text-gray-700">Product Name</label>
@@ -115,26 +131,22 @@ const AddProduct = () => {
               'Cereals & Ext.',
               'Cigarettes',
               'Confectionery',
-              'Display Dept',
               'Farm Inputs',
               'Fats & Oils',
               'Flour & Rice',
-              'Food Additives',
               'Groceries',
               'Hardware',
               'Household',
-              'Lighters',
-              'Lightings',
               'Medicine',
               'Milk',
-              'Packaging',
               'Personal Care',
-              'Spreads',
               'Stationery',
               'Warehouse',
               'Wholesale',
             ].map((category) => (
-              <option key={category} value={category}>{category}</option>
+              <option key={category} value={category}>
+                {category}
+              </option>
             ))}
           </select>
         </div>
@@ -162,6 +174,7 @@ const AddProduct = () => {
             value={productData.description}
             onChange={handleChange}
             className="w-full px-4 py-2 border rounded-md"
+            rows="3"
           />
         </div>
         <div>
@@ -177,7 +190,7 @@ const AddProduct = () => {
         </div>
         <button
           type="submit"
-          className={`px-6 py-2 rounded-md ${loading ? 'bg-gray-400' : 'bg-primary text-white'} `}
+          className={`px-6 py-2 rounded-md ${loading ? 'bg-gray-400' : 'bg-yellow-500 text-white'}`}
           disabled={loading}
         >
           {loading ? 'Submitting...' : 'Add Product'}
