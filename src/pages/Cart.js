@@ -22,10 +22,10 @@ const CartPage = () => {
 
   const handlePaymentSuccess = async (reference) => {
     console.log('Payment Reference:', reference);
-    await submitOrder();
+    await submitOrder(reference.reference); // Pass the payment reference
   };
 
-  const submitOrder = async () => {
+  const submitOrder = async (paymentReference) => {
     setLoading(true);
     try {
       const response = await fetch(`${API_URL}/orders`, {
@@ -38,14 +38,17 @@ const CartPage = () => {
           note: formData.note,
           cart,
           totalAmount,
+          paymentReference, // Include the payment reference
         }),
       });
 
       if (response.ok) {
         alert('Order placed successfully!');
-        clearCart();
+        clearCart(); // Clear the cart
       } else {
-        alert('Failed to place the order. Please try again.');
+        const errorData = await response.json();
+        console.error('Failed to place order:', errorData.message);
+        alert(`Failed to place the order: ${errorData.message || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error placing order:', error);
