@@ -41,10 +41,15 @@ const Home = () => {
   ];
 
   const sliderImages = [
+    '/images/logo.jpg',
     '/images/placeholder.jpg',
     '/images/placeholder1.jpg',
-    '/images/placeholder2.jpg',
+    '/images/logo.jpg',
     '/images/placeholder3.jpg',
+    '/images/placeholder.jpg',
+    '/images/placeholder4.jpg',
+
+
   ];
 
   useEffect(() => {
