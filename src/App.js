@@ -2,16 +2,16 @@ import React, { Suspense } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+
+// Critical components (Eagerly loaded)
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-
-// Eagerly loaded pages (Critical components)
 import Home from './pages/Home';
 import ProductDetails from './pages/ProductDetails';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
 
-// Lazy loading non-critical pages
+// Lazy-loaded non-critical pages
 const SignIn = React.lazy(() => import('./pages/SignIn'));
 const SignUp = React.lazy(() => import('./pages/SignUp'));
 const CategoryProducts = React.lazy(() => import('./pages/CategoryProducts'));
@@ -26,7 +26,7 @@ const LoadingFallback = () => (
         src="/images/logo.jpg" // Path to the logo
         alt="Loading..."
         className="mx-auto mb-4"
-        style={{ width: '150px', height: '150px' }} // Enlarge logo dimensions
+        style={{ width: '150px', height: '150px' }} // Logo dimensions
       />
       <p className="text-gray-600 text-lg font-medium">Loading...</p>
     </div>
@@ -39,7 +39,10 @@ const App = () => {
       <AuthProvider>
         <CartProvider>
           <div className="flex flex-col min-h-screen">
+            {/* Navigation Bar */}
             <Navbar />
+
+            {/* Main Content */}
             <main className="flex-grow">
               <Suspense fallback={<LoadingFallback />}>
                 <Routes>
@@ -49,7 +52,7 @@ const App = () => {
                   <Route path="/cart" element={<Cart />} />
                   <Route path="/checkout" element={<Checkout />} />
 
-                  {/* Lazy loaded pages */}
+                  {/* Lazy-loaded pages */}
                   <Route path="/login" element={<SignIn />} />
                   <Route path="/register" element={<SignUp />} />
                   <Route path="/category/:categoryName" element={<CategoryProducts />} />
@@ -58,6 +61,8 @@ const App = () => {
                 </Routes>
               </Suspense>
             </main>
+
+            {/* Footer */}
             <Footer />
           </div>
         </CartProvider>
