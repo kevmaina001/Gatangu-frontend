@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import AddProduct from './AddProduct'; // Import AddProduct Component
-
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 const AdminPanel = () => {
+const ADMIN_ID = '674e4b8c22fc2df1f90d95ae'; // Hardcoded Admin User ID
   const [activeTab, setActiveTab] = useState('addProduct');
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
@@ -9,7 +11,17 @@ const AdminPanel = () => {
   const [editingProduct, setEditingProduct] = useState(null);
   const [editData, setEditData] = useState({});
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+  const { user } = useAuth(); // Retrieve user info
+  const navigate = useNavigate();
 
+  // Redirect if the user is not an admin
+     // Redirect non-admin users
+  useEffect(() => {
+    if (!user || user.id !== ADMIN_ID) {
+      alert('Go to Hell');
+      navigate('/');
+    }
+  }, [user, navigate]);
   // Fetch Products and Orders on load
   useEffect(() => {
     fetchProducts();
@@ -127,7 +139,7 @@ const AdminPanel = () => {
   
 
   return (
-    <div className="container mx-auto pt-40">
+    <div className="container mx-auto pt-60">
       {/* Tabs */}
       <div className="flex space-x-4 mb-6">
         <button

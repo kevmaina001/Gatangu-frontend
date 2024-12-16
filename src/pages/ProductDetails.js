@@ -70,7 +70,7 @@ const ProductDetails = () => {
   }
 
   return (
-    <div className="container mx-auto pt-52 py-10 bg-white px-4 md:px-12">
+    <div className="container mx-auto pt-[15rem] pb-60 rem bg-white px-4 md:px-12">
       {/* Toast Container */}
       <ToastContainer />
 

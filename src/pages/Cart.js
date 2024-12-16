@@ -2,15 +2,12 @@ import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { Link } from 'react-router-dom';
 import PaystackPayment from '../components/PaystackPayment';
-import { useAuth } from '../context/AuthContext'; // Adjust path if necessary
-
+import { useAuth } from '../context/AuthContext';
 
 const CartPage = () => {
   const { cart, removeFromCart, updateQuantity, clearCart } = useCart();
   const [formData, setFormData] = useState({ name: '', email: '', location: '', note: '' });
-  const { user } = useAuth(); // Get the authenticated user
-  console.log('User:', user?.email);
-
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
 
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -26,113 +23,125 @@ const CartPage = () => {
   };
 
   const handlePaymentSuccess = async (reference) => {
-    console.log('Payment Reference:', reference);
-    await submitOrder(reference.reference); // Pass the payment reference
+    await submitOrder(reference.reference);
   };
+
   const submitOrder = async (paymentReference) => {
+    if (!formData.name || !formData.email || !formData.location) {
+      alert('Please fill out all required fields before placing your order.');
+      return;
+    }
     setLoading(true);
-    console.log('Token being sent in Authorization header:', localStorage.getItem('token')); // Debug log
-  
     try {
       const response = await fetch(`${API_URL}/orders`, {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`, // Retrieve token from localStorage
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
         body: JSON.stringify({
-          name: formData.name,
-          email: formData.email,
-          location: formData.location,
-          note: formData.note,
+          ...formData,
           cart,
           totalAmount,
-          paymentReference, // Include the payment reference
+          paymentReference,
         }),
       });
-  
-      const data = await response.json(); // Parse response
-      console.log('Order Response:', data); // Debug log
-  
+
+      const data = await response.json();
       if (response.ok) {
         alert('Order placed successfully!');
-        clearCart(); // Clear the cart
+        clearCart();
       } else {
-        console.error('Failed to place order:', data.message);
         alert(`Failed to place the order: ${data.message || 'Unknown error'}`);
       }
     } catch (error) {
-      console.error('Error placing order:', error);
       alert('An error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
   };
-  
 
   return (
-    <div className="container mx-auto py-20">
-      <h2 className="text-3xl font-bold mb-6 text-center">Shopping Cart</h2>
+    <div className="container mx-auto pt-[10rem] pb-40 px-4">
+      <h2 className="text-4xl font-bold mb-8 text-center text-gray-800">Shopping Cart</h2>
 
       {cart.length > 0 ? (
         <>
-          {/* Cart Items */}
-          <div className="bg-gray-100 p-4 rounded-lg shadow-md mb-6">
+         <ul className="space-y-6">
             {cart.map((item) => (
-              <div
+              <li
                 key={item._id}
-                className="flex items-center justify-between mb-4 bg-white p-4 rounded-lg shadow-sm"
+                className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow"
               >
-                <div className="flex items-center space-x-4">
-                  <img
+                {/* Image and Item Details */}
+                <div className="flex items-center space-x-4 mb-4 sm:mb-0 w-full sm:w-auto">
+                  {/* <img
                     src={item.image ? `${API_URL}/${item.image}` : '/images/placeholder.jpg'}
                     alt={item.name}
-                    className="w-20 h-20 object-cover rounded-lg"
-                  />
-                  <div>
-                    <h4 className="font-medium">{item.name}</h4>
+                    className="w-16 h-16 object-cover rounded-lg"
+                  /> */}
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-lg text-gray-800">{item.name}</h4>
                     <p className="text-sm text-gray-600">Price: Ksh. {item.price}</p>
                   </div>
                 </div>
-                <div className="flex items-center space-x-4">
-                  <input
-                    type="number"
-                    value={item.quantity}
-                    min="1"
-                    onChange={(e) => handleQuantityChange(item._id, e.target.value)}
-                    className="w-16 text-center border border-gray-300 rounded-md"
-                  />
+
+                {/* Quantity Controls and Remove Button */}
+                <div className="flex items-center space-x-4 w-full sm:w-auto">
+                  <div className="flex items-center border border-gray-300 rounded-md">
+                    <button
+                      onClick={() => handleQuantityChange(item._id, item.quantity - 1)}
+                      disabled={item.quantity <= 1}
+                      className="px-2 py-1 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-l-md"
+                    >
+                      -
+                    </button>
+                    <input
+                      type="number"
+                      value={item.quantity}
+                      min="1"
+                      onChange={(e) => handleQuantityChange(item._id, e.target.value)}
+                      className="w-12 text-center border-0 focus:ring-0"
+                    />
+                    <button
+                      onClick={() => handleQuantityChange(item._id, item.quantity + 1)}
+                      className="px-2 py-1 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-r-md"
+                    >
+                      +
+                    </button>
+                  </div>
                   <button
                     onClick={() => removeFromCart(item._id)}
-                    className="text-red-500 hover:text-red-700"
+                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm"
                   >
                     Remove
                   </button>
                 </div>
-                <p className="font-bold">Ksh. {item.price * item.quantity}</p>
-              </div>
-            ))}
-          </div>
 
-          {/* Checkout Form */}
-          <div className="bg-gray-100 p-4 rounded-lg shadow-md mt-6 w-full md:w-1/2 mx-auto">
-            <h3 className="text-xl font-bold mb-4">Checkout Details</h3>
+                {/* Total Price */}
+                <p className="font-bold text-gray-700 mt-2 sm:mt-0">Ksh. {item.price * item.quantity}</p>
+              </li>
+            ))}
+          </ul>
+               
+          <div className="bg-white rounded-lg shadow-md p-6 mt-10 max-w-lg mx-auto">
+            <h3 className="text-2xl font-semibold mb-4 text-gray-800">Checkout Details</h3>
             <input
               type="text"
               name="name"
               placeholder="Full Name"
               value={formData.name}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 p-2 rounded mb-4"
+              className="w-full border border-gray-300 p-3 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-green-500"
               required
             />
             <input
               type="email"
               name="email"
-              placeholder="Email"
+              placeholder="Enter Email to receive receipt"
               value={formData.email}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 p-2 rounded mb-4"
+              className="w-full border border-gray-300 p-3 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-green-500"
               required
             />
             <input
@@ -141,7 +150,7 @@ const CartPage = () => {
               placeholder="Location"
               value={formData.location}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 p-2 rounded mb-4"
+              className="w-full border border-gray-300 p-3 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-green-500"
               required
             />
             <textarea
@@ -149,26 +158,27 @@ const CartPage = () => {
               placeholder="Add a note (e.g., delivery instructions)"
               value={formData.note}
               onChange={handleInputChange}
-              className="w-full border border-gray-300 p-2 rounded mb-4"
+              className="w-full border border-gray-300 p-3 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-green-500"
             ></textarea>
 
-            {/* Paystack Payment Button */}
             <PaystackPayment
-              amount={totalAmount} // Total amount to be paid
+              amount={totalAmount}
               email={formData.email}
               onSuccess={handlePaymentSuccess}
               onClose={() => console.log('Payment closed')}
             />
-            {loading && <p className="text-center text-gray-500">Placing your order...</p>}
+            {loading && <p className="text-center text-gray-500 mt-4">Placing your order...</p>}
           </div>
         </>
       ) : (
-        <p className="text-center text-gray-500">
-          Your cart is empty.{' '}
-          <Link to="/" className="text-green-500 hover:underline">
-            Go shopping
+        <p className="text-center text-gray-500 animate-fadeIn">
+          Your shopping basket is empty. Don’t miss out on great deals!{' '}
+          <Link to="/" className="text-green-500 hover:underline hover:text-green-600 transition-colors">
+            Start shopping now 
           </Link>
+          {' '} at Gatangu Enterprises Dashboard to find amazing products.
         </p>
+
       )}
     </div>
   );
