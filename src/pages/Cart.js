@@ -2,10 +2,15 @@ import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { Link } from 'react-router-dom';
 import PaystackPayment from '../components/PaystackPayment';
+import { useAuth } from '../context/AuthContext'; // Adjust path if necessary
+
 
 const CartPage = () => {
   const { cart, removeFromCart, updateQuantity, clearCart } = useCart();
   const [formData, setFormData] = useState({ name: '', email: '', location: '', note: '' });
+  const { user } = useAuth(); // Get the authenticated user
+  console.log('User:', user?.email);
+
   const [loading, setLoading] = useState(false);
 
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -24,13 +29,17 @@ const CartPage = () => {
     console.log('Payment Reference:', reference);
     await submitOrder(reference.reference); // Pass the payment reference
   };
-
   const submitOrder = async (paymentReference) => {
     setLoading(true);
+    console.log('Token being sent in Authorization header:', localStorage.getItem('token')); // Debug log
+  
     try {
       const response = await fetch(`${API_URL}/orders`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`, // Retrieve token from localStorage
+        },
         body: JSON.stringify({
           name: formData.name,
           email: formData.email,
@@ -41,14 +50,16 @@ const CartPage = () => {
           paymentReference, // Include the payment reference
         }),
       });
-
+  
+      const data = await response.json(); // Parse response
+      console.log('Order Response:', data); // Debug log
+  
       if (response.ok) {
         alert('Order placed successfully!');
         clearCart(); // Clear the cart
       } else {
-        const errorData = await response.json();
-        console.error('Failed to place order:', errorData.message);
-        alert(`Failed to place the order: ${errorData.message || 'Unknown error'}`);
+        console.error('Failed to place order:', data.message);
+        alert(`Failed to place the order: ${data.message || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error placing order:', error);
@@ -57,6 +68,7 @@ const CartPage = () => {
       setLoading(false);
     }
   };
+  
 
   return (
     <div className="container mx-auto py-20">

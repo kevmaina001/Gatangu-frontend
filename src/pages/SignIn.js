@@ -13,7 +13,7 @@ const SignIn = () => {
   const handleSignIn = async (e) => {
     e.preventDefault();
     setError(null); // Reset error state
-
+  
     try {
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
@@ -22,22 +22,24 @@ const SignIn = () => {
         },
         body: JSON.stringify({ email, password }),
       });
-
+  
       const data = await response.json();
-
+  
       if (response.ok) {
         // Save token and login
-        localStorage.setItem('authToken', data.token);
+        localStorage.setItem('authToken', data.token); // Use consistent key
+        console.log('Token saved to localStorage:', data.token); // Debug log
         login(data.token, data.user);
         navigate('/'); // Redirect to home
       } else {
-        setError(data.msg || 'Invalid email or password.');
+        setError(data.message || 'Invalid email or password.');
       }
     } catch (error) {
       console.error('Error:', error);
       setError('An error occurred. Please try again later.');
     }
   };
+  
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">

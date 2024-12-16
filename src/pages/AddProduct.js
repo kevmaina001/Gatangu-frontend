@@ -50,7 +50,7 @@ const AddProduct = () => {
       console.log('Response:', data);
 
       if (response.ok) {
-        setMessage({ text: 'Product added successfully!', type: 'success' });
+        setMessage({ text: 'Product added successfully Admin!', type: 'success' });
         setProductData({
           name: '',
           price: '',

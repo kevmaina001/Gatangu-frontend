@@ -1,31 +1,39 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { PaystackButton } from 'react-paystack';
 
 const PaystackPayment = ({ amount, email, onSuccess, onClose }) => {
-  const publicKey = 'pk_live_ce30fb917a1c53531bd026eb6e0dc22708ef89f7'; // Updated key
-  const currency = 'KES'; // Explicitly set the currency to Kenyan Shillings
+  const [error, setError] = useState(null);
+  const publicKey = 'pk_live_ce30fb917a1c53531bd026eb6e0dc22708ef89f7';
+  const currency = 'KES'; // Set to Kenyan Shillings
+
+  const handlePaymentClose = () => {
+    console.log('Payment prompt closed by the user.');
+    setError('Payment was not completed. Please try again or use a different method.');
+    onClose();
+  };
 
   const componentProps = {
     email,
-    amount: amount * 100, // Convert to kobo (Paystack smallest unit)
-    currency, // Ensure KES is passed for Kenyan Shillings
+    amount: amount * 100, // Convert to kobo (Paystack's smallest unit)
+    currency,
     publicKey,
     text: 'Pay Order',
     onSuccess: (reference) => {
       console.log('Payment Successful:', reference);
-      onSuccess(reference); // Trigger the success callback
+      setError(null); // Clear any previous errors
+      onSuccess(reference);
     },
-    onClose: () => {
-      console.log('Payment closed');
-      onClose();
-    },
+    onClose: handlePaymentClose,
   };
 
   return (
-    <PaystackButton
-      {...componentProps}
-      className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition"
-    />
+    <div>
+      {error && <p className="text-red-500 mb-2">{error}</p>}
+      <PaystackButton
+        {...componentProps}
+        className="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 transition"
+      />
+    </div>
   );
 };
 

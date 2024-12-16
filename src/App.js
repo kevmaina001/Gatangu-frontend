@@ -1,37 +1,26 @@
-import React, { Suspense } from 'react';
+import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 
-// Critical components (Eagerly loaded)
+// Components
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+
+// Pages
 import Home from './pages/Home';
 import ProductDetails from './pages/ProductDetails';
 import Cart from './pages/Cart';
 import Checkout from './pages/Checkout';
-
-// Lazy-loaded non-critical pages
-const SignIn = React.lazy(() => import('./pages/SignIn'));
-const SignUp = React.lazy(() => import('./pages/SignUp'));
-const CategoryProducts = React.lazy(() => import('./pages/CategoryProducts'));
-const AddProduct = React.lazy(() => import('./pages/AddProduct'));
-const SearchResults = React.lazy(() => import('./pages/SearchResults'));
-
-// Loading Fallback Component
-const LoadingFallback = () => (
-  <div className="flex items-center justify-center min-h-screen bg-white">
-    <div className="text-center">
-      <img
-        src="/images/logo.jpg" // Path to the logo
-        alt="Loading..."
-        className="mx-auto mb-4"
-        style={{ width: '150px', height: '150px' }} // Logo dimensions
-      />
-      <p className="text-gray-600 text-lg font-medium">Loading...</p>
-    </div>
-  </div>
-);
+import Profile from './pages/Profile';
+import AdminPanel from './pages/AdminPanel';
+import AddProduct from './pages/AddProduct';
+// import ManageOrders from './pages/ManageOrders';
+// import ViewOrders from './pages/ViewOrders';
+import SignIn from './pages/SignIn';
+import SignUp from './pages/SignUp';
+import CategoryProducts from './pages/CategoryProducts';
+import SearchResults from './pages/SearchResults';
 
 const App = () => {
   return (
@@ -44,22 +33,21 @@ const App = () => {
 
             {/* Main Content */}
             <main className="flex-grow">
-              <Suspense fallback={<LoadingFallback />}>
-                <Routes>
-                  {/* Eagerly loaded pages */}
-                  <Route path="/" element={<Home />} />
-                  <Route path="/products/:id" element={<ProductDetails />} />
-                  <Route path="/cart" element={<Cart />} />
-                  <Route path="/checkout" element={<Checkout />} />
-
-                  {/* Lazy-loaded pages */}
-                  <Route path="/login" element={<SignIn />} />
-                  <Route path="/register" element={<SignUp />} />
-                  <Route path="/category/:categoryName" element={<CategoryProducts />} />
-                  <Route path="/add-product" element={<AddProduct />} />
-                  <Route path="/search" element={<SearchResults />} />
-                </Routes>
-              </Suspense>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/products/:id" element={<ProductDetails />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/admin-panel" element={<AdminPanel />} />
+                <Route path="/add-product" element={<AddProduct />} />
+                {/* <Route path="/manage-orders" element={<ManageOrders />} />
+                <Route path="/view-orders" element={<ViewOrders />} /> */}
+                <Route path="/login" element={<SignIn />} />
+                <Route path="/register" element={<SignUp />} />
+                <Route path="/category/:categoryName" element={<CategoryProducts />} />
+                <Route path="/search" element={<SearchResults />} />
+              </Routes>
             </main>
 
             {/* Footer */}

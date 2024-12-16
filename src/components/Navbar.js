@@ -5,7 +5,6 @@ import {
   FaSearch,
   FaUser,
   FaShoppingCart,
-  FaTh,
   FaBars,
   FaTimes,
 } from 'react-icons/fa';
@@ -18,7 +17,6 @@ const Navbar = () => {
 
   const [menuOpen, setMenuOpen] = useState(false);
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
-  const [categoriesOpen, setCategoriesOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   const navigate = useNavigate();
@@ -27,7 +25,6 @@ const Navbar = () => {
 
   const toggleMenu = () => setMenuOpen((prev) => !prev);
   const toggleAccountDropdown = () => setAccountDropdownOpen((prev) => !prev);
-  const toggleCategories = () => setCategoriesOpen((prev) => !prev);
 
   const handleLogout = () => {
     logout();
@@ -41,37 +38,6 @@ const Navbar = () => {
       setSearchQuery('');
     }
   };
-
-  // Updated categories list
-  const categories = [
-    'Airtime',
-    'Animal Feeds',
-    'Animal Health',
-    'Baby Hygiene',
-    'Bakery',
-    'Beverages',
-    'Cereals & Ext.',
-    'Cigarettes',
-    'Confectionery',
-    'Display Dept',
-    'Farm Inputs',
-    'Fats & Oils',
-    'Flour & Rice',
-    'Food Additives',
-    'Groceries',
-    'Hardware',
-    'Household',
-    'Lighters',
-    'Lightings',
-    'Medicine',
-    'Milk',
-    'Packaging',
-    'Personal Care',
-    'Spreads',
-    'Stationery',
-    'Warehouse',
-    'Wholesale',
-  ];
 
   return (
     <header
@@ -118,89 +84,64 @@ const Navbar = () => {
 
         {/* Desktop Links */}
         <div className="hidden md:flex items-center space-x-6">
-          {/* Categories Dropdown */}
-          <div className="relative">
-            <button
-              onClick={toggleCategories}
-              className="flex items-center bg-gray-200 text-secondary px-3 py-2 rounded-md hover:bg-gray-300"
-            >
-              <FaTh className="mr-2" />
-              Categories
-            </button>
-            {categoriesOpen && (
-              <div className="absolute left-0 mt-2 w-56 bg-white text-secondary rounded-md shadow-lg z-10">
-                <ul className="py-2">
-                  {categories.map((category, index) => (
-                    <li key={index}>
-                      <Link
-                        to={`/category/${category.toLowerCase().replace(/ /g, '-')}`}
-                        className="block px-4 py-2 hover:bg-gray-100"
-                        onClick={toggleCategories}
-                      >
-                        {category}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-
           {/* Add Product Button (Admin Only) */}
           {user?.id === ADMIN_ID && (
             <Link
-              to="/add-product"
+              to="/admin-panel"
               className="bg-primary text-white px-4 py-2 rounded-md hover:bg-yellow-600"
             >
-              Add Product
+              AdminPanel
             </Link>
           )}
 
           {/* Account Dropdown */}
           <div className="relative">
             {user ? (
-              <button
-                onClick={toggleAccountDropdown}
-                className="flex items-center hover:text-primary"
-              >
-                <FaUser className="mr-2" />
-                Hi, {user.username}
-                <FaCaretDown className="ml-1" />
-              </button>
-            ) : (
-              <div className="relative">
+              <>
                 <button
                   onClick={toggleAccountDropdown}
                   className="flex items-center hover:text-primary"
                 >
                   <FaUser className="mr-2" />
-                  <FaCaretDown />
+                  Hi, {user.username}
+                  <FaCaretDown className="ml-1" />
                 </button>
                 {accountDropdownOpen && (
                   <div className="absolute right-0 mt-2 w-56 bg-white text-secondary rounded-md shadow-lg z-10">
                     <ul className="py-2">
                       <li>
                         <Link
-                          to="/login"
+                          to="/profile"
                           className="block px-4 py-2 hover:bg-gray-100"
                           onClick={() => setAccountDropdownOpen(false)}
                         >
-                          Sign In
+                          Profile
                         </Link>
                       </li>
                       <li>
-                        <Link
-                          to="/register"
-                          className="block px-4 py-2 hover:bg-gray-100"
-                          onClick={() => setAccountDropdownOpen(false)}
+                        <button
+                          onClick={handleLogout}
+                          className="w-full text-left px-4 py-2 hover:bg-gray-100"
                         >
-                          Register
-                        </Link>
+                          Logout
+                        </button>
                       </li>
                     </ul>
                   </div>
                 )}
-              </div>
+              </>
+            ) : (
+              <div className="flex space-x-4">
+              <Link to="/login" className="flex items-center hover:text-primary">
+                <FaUser className="mr-2" />
+                Sign In
+              </Link>
+              <Link to="/register" className="flex items-center hover:text-primary">
+                <FaUser className="mr-2" />
+                Register
+              </Link>
+            </div>
+            
             )}
           </div>
 
@@ -243,37 +184,37 @@ const Navbar = () => {
               <FaTimes className="text-2xl" />
             </button>
 
-            {/* Mobile Search Bar */}
-            <form onSubmit={handleSearchSubmit} className="relative mb-4">
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search products..."
-                className="w-full px-4 py-2 rounded-md border border-gray-300 text-black"
-              />
-              <button
-                type="submit"
-                className="absolute top-1/2 right-3 transform -translate-y-1/2 text-gray-500"
+            {/* Mobile Profile Link */}
+            {user && (
+              <Link
+                to="/profile"
+                onClick={toggleMenu}
+                className="block px-4 py-2 mb-4 bg-gray-200 text-secondary rounded hover:bg-gray-300"
               >
-                <FaSearch />
-              </button>
-            </form>
+                Profile
+              </Link>
+            )}
 
-            {/* Mobile Categories */}
-            <ul className="space-y-4">
-              {categories.map((category, index) => (
-                <li key={index}>
-                  <Link
-                    to={`/category/${category.toLowerCase().replace(/ /g, '-')}`}
-                    onClick={toggleMenu}
-                    className="block px-4 py-2 hover:bg-gray-100"
-                  >
-                    {category}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            {/* Login Link */}
+            {!user && (
+              <div className="space-y-2">
+              <Link
+                to="/login"
+                onClick={toggleMenu}
+                className="block px-4 py-2 bg-gray-200 text-secondary rounded hover:bg-gray-300"
+              >
+                Sign In
+              </Link>
+              <Link
+                to="/register"
+                onClick={toggleMenu}
+                className="block px-4 py-2 bg-gray-200 text-secondary rounded hover:bg-gray-300"
+              >
+                Register
+              </Link>
+            </div>
+            
+            )}
           </div>
         </div>
       )}
