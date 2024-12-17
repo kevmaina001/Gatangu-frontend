@@ -13,6 +13,12 @@ const ProductDetails = () => {
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1); // Quantity state
 
+  // Determine the base URL based on the environment
+  const baseURL =
+    window.location.hostname === 'localhost'
+      ? 'http://localhost:5000'
+      : 'https://gatangu-backend-1.onrender.com';
+
   useEffect(() => {
     const fetchProductDetails = async () => {
       try {
@@ -79,10 +85,14 @@ const ProductDetails = () => {
         <div className="w-full md:w-1/3 mb-6 md:mb-0">
           <div className="bg-gray-100 rounded-lg overflow-hidden shadow-md">
             <img
-              src={`https://gatangu-backend-1.onrender.com/${product.image}`} // Ensure proper path for image
+              src={`${baseURL}/${product.image}`} // Dynamically constructed path
               alt={product.name}
               className="w-full object-contain p-4"
               style={{ height: '200px' }} // Reduced height for scaling
+              onError={(e) => {
+                console.error('Image failed to load:', `${baseURL}/${product.image}`);
+                e.target.src = '/fallback.jpg'; // Use fallback image if the image fails to load
+              }}
             />
           </div>
         </div>
