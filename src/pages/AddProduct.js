@@ -10,9 +10,9 @@ const AddProduct = () => {
     image: null,
   });
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState({ text: '', type: '' }); // Message state for feedback
+  const [message, setMessage] = useState({ text: '', type: '' });
+  const [imagePreview, setImagePreview] = useState(null); // For displaying the selected image
 
-  // Correct API URL
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   // Handle input field changes
@@ -23,13 +23,23 @@ const AddProduct = () => {
 
   // Handle file selection
   const handleFileChange = (e) => {
-    setProductData({ ...productData, image: e.target.files[0] });
+    const file = e.target.files[0];
+    setProductData({ ...productData, image: file });
+
+    // Image preview
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setImagePreview(reader.result);
+      reader.readAsDataURL(file);
+    } else {
+      setImagePreview(null);
+    }
   };
 
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true); // Show loading state
+    setLoading(true);
     setMessage({ text: '', type: '' });
 
     const formData = new FormData();
@@ -50,7 +60,7 @@ const AddProduct = () => {
       console.log('Response:', data);
 
       if (response.ok) {
-        setMessage({ text: 'Product added successfully Admin!', type: 'success' });
+        setMessage({ text: 'Product added successfully!', type: 'success' });
         setProductData({
           name: '',
           price: '',
@@ -59,6 +69,7 @@ const AddProduct = () => {
           description: '',
           image: null,
         });
+        setImagePreview(null);
       } else {
         setMessage({ text: `Failed to add product: ${data.message || 'Unknown error'}`, type: 'error' });
       }
@@ -121,29 +132,7 @@ const AddProduct = () => {
             required
           >
             <option value="" disabled>Select a category</option>
-            {[
-              'Airtime',
-              'Animal Feeds',
-              'Animal Health',
-              'Baby Hygiene',
-              'Bakery',
-              'Beverages',
-              'Cereals & Ext.',
-              'Cigarettes',
-              'Confectionery',
-              'Farm Inputs',
-              'Fats & Oils',
-              'Flour & Rice',
-              'Groceries',
-              'Hardware',
-              'Household',
-              'Medicine',
-              'Milk',
-              'Personal Care',
-              'Stationery',
-              'Warehouse',
-              'Wholesale',
-            ].map((category) => (
+            {['Airtime', 'Animal Feeds', 'Bakery', 'Medicine', 'Groceries', 'Hardware'].map((category) => (
               <option key={category} value={category}>
                 {category}
               </option>
@@ -187,6 +176,12 @@ const AddProduct = () => {
             className="w-full px-4 py-2 border rounded-md"
             required
           />
+          {imagePreview && (
+            <div className="mt-4">
+              <p className="text-gray-600">Image Preview:</p>
+              <img src={imagePreview} alt="Selected" className="h-32 w-auto mt-2" />
+            </div>
+          )}
         </div>
         <button
           type="submit"
