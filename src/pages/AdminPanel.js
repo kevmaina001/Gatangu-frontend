@@ -172,7 +172,7 @@ const ADMIN_ID = '674e4b8c22fc2df1f90d95ae'; // Hardcoded Admin User ID
           <ul>
             {products.map((product) => (
               <li key={product._id} className="flex justify-between border-b py-2">
-                <span>{product.name} - ${product.price}</span>
+                <span>{product.name} - ksh{product.price}</span>
                 <div>
                   <button
                     onClick={() => openEditModal(product)}
