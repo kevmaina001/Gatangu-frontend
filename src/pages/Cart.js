@@ -49,7 +49,9 @@ const CartPage = () => {
 
       const data = await response.json();
       if (response.ok) {
-        alert('Order placed successfully!');
+        alert('Order placed successfully! Thank you For Shopping with our E-commerce platform');
+        sendOrderDetailsToWhatsApp(); // Send order details via WhatsApp
+
         clearCart();
       } else {
         alert(`Failed to place the order: ${data.message || 'Unknown error'}`);
@@ -60,10 +62,32 @@ const CartPage = () => {
       setLoading(false);
     }
   };
+  const sendOrderDetailsToWhatsApp = () => {
+    const formattedCart = cart
+      .map((item) => `${item.name} - Qty: ${item.quantity}, Price: Ksh. ${item.price}`)
+      .join('%0A'); // %0A is for a new line in URLs
+  
+    const message = `
+      *New Order Placed*%0A
+      *Name:* ${formData.name}%0A
+      *Email:* ${formData.email}%0A
+      *Location:* ${formData.location}%0A
+      *Note:* ${formData.note || 'N/A'}%0A
+      *Total Amount:* Ksh. ${totalAmount}%0A%0A
+      *Order Items:*%0A${formattedCart}
+    `;
+  
+    const whatsappURL = `https://wa.me/254708328905?text=${encodeURI(message)}`;
+    window.open(whatsappURL, '_blank');
+  };
+  
 
   return (
     <div className="container mx-auto pt-[10rem] pb-40 px-4">
-      <h2 className="text-4xl font-bold mb-8 text-center text-gray-800">Shopping Cart</h2>
+      <h2 className="text-5xl font-playfair mb-8 text-center text-gray-800 tracking-wide">
+          Shopping Cart
+        </h2>
+
 
       {cart.length > 0 ? (
         <>

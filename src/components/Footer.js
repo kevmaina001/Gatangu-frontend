@@ -1,10 +1,12 @@
 import React, { useContext, useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { FaUser, FaWhatsapp, FaLifeRing, FaList } from 'react-icons/fa';
+import { FaUser, FaWhatsapp, FaLifeRing, FaList, FaShoppingCart } from 'react-icons/fa';
 import { AuthContext } from '../context/AuthContext';
+import { CartContext } from '../context/CartContext';
 
 const Footer = () => {
   const { user, logout } = useContext(AuthContext);
+  const { cart } = useContext(CartContext);
   const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
   const [supportDropdownOpen, setSupportDropdownOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
@@ -102,6 +104,19 @@ const Footer = () => {
             <FaList className="text-lg mb-1" />
             <span>Categories</span>
           </button>
+        </div>
+
+        {/* Cart */}
+        <div className="relative flex flex-col items-center text-sm">
+          <Link to="/cart" className="hover:text-blue-600 transition-all">
+            <FaShoppingCart className="text-lg mb-1" />
+            <span>Cart</span>
+            {cart.length > 0 && (
+              <span className="absolute top-0 right-0 bg-primary text-white rounded-full px-2 text-xs font-bold -translate-y-2 translate-x-4">
+                {cart.length}
+              </span>
+            )}
+          </Link>
         </div>
 
         {/* Account */}
@@ -215,52 +230,47 @@ const Footer = () => {
       </div>
 
       {/* Categories Side Panel */}
-      {/* Categories Side Panel */}
-      {/* Categories Side Panel */}
-{categoriesOpen && (
-  <div
-    id="categoriesPanel"
-    className="fixed inset-0 bg-white shadow-lg z-50 overflow-y-auto transition-transform duration-300 ease-in-out pt-32"
-  >
-    <div className="p-6 relative flex flex-col h-full">
-      {/* Top Close Button */}
-      <button
-        onClick={() => setCategoriesOpen(false)}
-        className="absolute top-4 right-4 text-black text-2xl hover:text-red-500 transition-all"
-        aria-label="Close Categories Panel"
-      >
-        &times;
-      </button>
-
-      <h2 className="text-xl font-bold mb-4">Categories</h2>
-      <ul className="space-y-2 flex-grow">
-        {categories.map((category, index) => (
-          <li key={index}>
-            <Link
-              to={`/category/${category}`}
-              className="block px-4 py-2 text-gray-800 hover:bg-gray-200 rounded"
+      {categoriesOpen && (
+        <div
+          id="categoriesPanel"
+          className="fixed inset-0 bg-white shadow-lg z-50 overflow-y-auto transition-transform duration-300 ease-in-out pt-32 md:max-w-sm"
+        >
+          <div className="p-6 relative flex flex-col h-full">
+            {/* Top Close Button */}
+            <button
               onClick={() => setCategoriesOpen(false)}
+              className="absolute top-4 right-4 text-black text-2xl hover:text-red-500 transition-all"
+              aria-label="Close Categories Panel"
             >
-              {category}
-            </Link>
-          </li>
-        ))}
-      </ul>
+              &times;
+            </button>
 
-      {/* Bottom Cancel Button */}
-      <button
-        onClick={() => setCategoriesOpen(false)}
-        className="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-all"
-        aria-label="Cancel"
-      >
-        Cancel
-      </button>
-    </div>
-  </div>
-)}
+            <h2 className="text-xl font-bold mb-4">Categories</h2>
+            <ul className="space-y-2 flex-grow">
+              {categories.map((category, index) => (
+                <li key={index}>
+                  <Link
+                    to={`/category/${category}`}
+                    className="block px-4 py-2 text-gray-800 hover:bg-gray-200 rounded"
+                    onClick={() => setCategoriesOpen(false)}
+                  >
+                    {category}
+                  </Link>
+                </li>
+              ))}
+            </ul>
 
-
-
+            {/* Bottom Cancel Button */}
+            <button
+              onClick={() => setCategoriesOpen(false)}
+              className="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-all"
+              aria-label="Cancel"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </footer>
   );
 };

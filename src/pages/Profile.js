@@ -2,82 +2,139 @@ import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 
 const Profile = () => {
-  const { user, token } = useAuth(); // Get authenticated user and token
-  const [orders, setOrders] = useState([]); // State to hold orders
-  const [loading, setLoading] = useState(true); // State to manage loading indicator
+  const { user, token } = useAuth();
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [expandedOrderId, setExpandedOrderId] = useState(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
       try {
         const response = await fetch(`${process.env.REACT_APP_API_URL}/orders/user`, {
-          headers: {
-            Authorization: `Bearer ${token}`, // Send the token in Authorization header
-          },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         const data = await response.json();
 
         if (response.ok) {
-          setOrders(data); // Set the orders if the response is successful
+          setOrders(data);
         } else {
-          console.error('Error fetching orders:', data.message); // Log the error message
+          console.error('Error fetching orders:', data.message);
         }
       } catch (error) {
-        console.error('Error fetching orders:', error); // Log unexpected errors
+        console.error('Error fetching orders:', error);
       } finally {
-        setLoading(false); // Hide loading indicator
+        setLoading(false);
       }
     };
 
     if (token) {
-      fetchOrders(); // Fetch orders only if token is available
+      fetchOrders();
     }
   }, [token]);
 
+  const toggleOrderItems = (orderId) => {
+    setExpandedOrderId((prev) => (prev === orderId ? null : orderId));
+  };
+
+  const pendingOrders = orders.filter((order) => order.status !== 'Completed');
+  const completedOrders = orders.filter((order) => order.status === 'Completed');
+
   return (
-    <div className="container mx-auto pt-40">
-      <h2 className="text-3xl font-bold mb-6">Profile</h2>
+    <div className="container mx-auto py-40 px-4">
+      <h2 className="text-3xl font-bold mb-6 text-center">Profile</h2>
 
       {/* User Info */}
-      <div className="bg-gray-100 p-4 rounded-lg shadow-md mb-6">
-        <h3 className="text-lg font-semibold">User Information</h3>
-        <p><strong>Name:</strong> {user?.name}</p>
-        <p><strong>Email:</strong> {user?.email}</p>
+      <div className="bg-white p-6 rounded-lg shadow-md mb-8">
+        <h3 className="text-lg font-semibold mb-2">User Information</h3>
+        <p className="text-gray-700"><strong>Name:</strong> {user?.name}</p>
+        <p className="text-gray-700"><strong>Email:</strong> {user?.email}</p>
       </div>
 
-      {/* Order History */}
-      <div className="bg-gray-100 p-4 rounded-lg shadow-md">
-        <h3 className="text-lg font-semibold mb-4">Order History</h3>
+      {/* Orders Section */}
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <h3 className="text-lg font-semibold mb-4 text-center">Order History</h3>
+
         {loading ? (
-          <p>Loading...</p>
+          <p className="text-center text-gray-500">Loading...</p>
         ) : orders.length > 0 ? (
-          orders.map((order) => (
-            <div key={order._id} className="border-b border-gray-200 py-4">
-              <p><strong>Order ID:</strong> {order._id}</p>
-              <p>
-                <strong>Status:</strong>{' '}
-                <span
-                  className={`font-semibold ${
-                    order.status === 'Completed' ? 'text-green-500' : 'text-yellow-500'
-                  }`}
-                >
-                  {order.status}
-                </span>
-              </p>
-              <p><strong>Total:</strong> Ksh. {order.totalAmount}</p>
-              <p><strong>Date:</strong> {new Date(order.createdAt).toLocaleDateString()}</p>
-              <h4 className="font-semibold mt-2">Items:</h4>
-              <ul className="list-disc pl-5">
-                {order.cart.map((item, index) => (
-                  <li key={index}>
-                    {item.name} - {item.quantity} x Ksh. {item.price}
-                  </li>
-                ))}
-              </ul>
+          <div>
+            {/* Pending Orders */}
+            <h4 className="text-lg font-semibold mb-4 text-yellow-600">Pending Orders</h4>
+            <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-2 md:gap-4">
+              {pendingOrders.length > 0 ? (
+                pendingOrders.map((order) => (
+                  <div
+                    key={order._id}
+                    className="border rounded-lg shadow-sm bg-gray-50 p-4 hover:shadow-md transition"
+                  >
+                    <p className="font-semibold">Order ID: {order._id}</p>
+                    <p className="text-gray-600">
+                      Total: Ksh. {order.totalAmount} | Date:{' '}
+                      {new Date(order.createdAt).toLocaleDateString()}
+                    </p>
+                    <p className="text-yellow-600 font-medium">Status: {order.status}</p>
+                    <button
+                      onClick={() => toggleOrderItems(order._id)}
+                      className="mt-2 text-blue-500 hover:underline"
+                    >
+                      {expandedOrderId === order._id ? 'Hide Items' : 'View Items'}
+                    </button>
+                    {expandedOrderId === order._id && (
+                      <ul className="mt-2 bg-gray-100 p-2 rounded">
+                        {order.cart.map((item, index) => (
+                          <li key={index} className="text-sm text-gray-700">
+                            {item.name} - {item.quantity} x Ksh. {item.price}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p className="text-center text-gray-500 col-span-2">No pending orders.</p>
+              )}
             </div>
-          ))
+
+            {/* Completed Orders */}
+            <h4 className="text-lg font-semibold my-4 text-green-600">Completed Orders</h4>
+            <div className="space-y-4 md:space-y-0 md:grid md:grid-cols-2 md:gap-4">
+              {completedOrders.length > 0 ? (
+                completedOrders.map((order) => (
+                  <div
+                    key={order._id}
+                    className="border rounded-lg shadow-sm bg-gray-50 p-4 hover:shadow-md transition"
+                  >
+                    <p className="font-semibold">Order ID: {order._id}</p>
+                    <p className="text-gray-600">
+                      Total: Ksh. {order.totalAmount} | Date:{' '}
+                      {new Date(order.createdAt).toLocaleDateString()}
+                    </p>
+                    <p className="text-green-600 font-medium">Status: {order.status}</p>
+                    <button
+                      onClick={() => toggleOrderItems(order._id)}
+                      className="mt-2 text-blue-500 hover:underline"
+                    >
+                      {expandedOrderId === order._id ? 'Hide Items' : 'View Items'}
+                    </button>
+                    {expandedOrderId === order._id && (
+                      <ul className="mt-2 bg-gray-100 p-2 rounded">
+                        {order.cart.map((item, index) => (
+                          <li key={index} className="text-sm text-gray-700">
+                            {item.name} - {item.quantity} x Ksh. {item.price}
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p className="text-center text-gray-500 col-span-2">No completed orders.</p>
+              )}
+            </div>
+          </div>
         ) : (
-          <p>No orders found.</p>
+          <p className="text-center text-gray-500">No orders found.</p>
         )}
       </div>
     </div>
