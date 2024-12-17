@@ -69,7 +69,7 @@ const Home = () => {
 
   return (
     <div
-      className="container mx-auto font-roboto bg-gray-100 text-gray-800"
+      className="container mx-auto font-['Poppins'] bg-gray-100 text-gray-800"
       style={{ paddingBottom: '100px' }}
     >
       <div className="py-36 md:py-48">

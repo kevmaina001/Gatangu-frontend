@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
 const SignIn = () => {
@@ -8,29 +8,29 @@ const SignIn = () => {
   const [error, setError] = useState(null);
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation(); // To retrieve state
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   const handleSignIn = async (e) => {
     e.preventDefault();
-    setError(null); // Reset error state
-  
+    setError(null);
+
     try {
       const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
-  
+
       const data = await response.json();
-  
+
       if (response.ok) {
-        // Save token and login
-        localStorage.setItem('authToken', data.token); // Use consistent key
-        console.log('Token saved to localStorage:', data.token); // Debug log
+        localStorage.setItem('authToken', data.token);
         login(data.token, data.user);
-        navigate('/'); // Redirect to home
+
+        // Redirect back to intended page or home
+        const redirectPath = location.state?.from || '/';
+        navigate(redirectPath);
       } else {
         setError(data.message || 'Invalid email or password.');
       }
@@ -39,7 +39,6 @@ const SignIn = () => {
       setError('An error occurred. Please try again later.');
     }
   };
-  
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">

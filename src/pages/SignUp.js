@@ -1,39 +1,38 @@
-// src/pages/SignUp.js
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const SignUp = () => {
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState(null);
-  const [successMessage, setSuccessMessage] = useState(null); // Success message state
+  const [successMessage, setSuccessMessage] = useState(null);
+
   const navigate = useNavigate();
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000'; // Dynamic API URL
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   const handleSignUp = async (e) => {
     e.preventDefault();
 
     try {
-      setError(null); // Reset error state before submission
-      setSuccessMessage(null); // Reset success message
+      setError(null);
+      setSuccessMessage(null);
 
       const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, email, password }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        // Display success message and navigate to login page
+        // Show success message and redirect to login page with state
         setSuccessMessage('Registration successful! Redirecting to login...');
-        setTimeout(() => navigate('/login'), 3000); // Delay redirect for better UX
+        setTimeout(() => {
+          navigate('/login', { state: { from: '/cart' } });
+        }, 2000); // 2-second
       } else {
-        // Display error message from backend or fallback
         setError(data.msg || 'Failed to register. Please try again.');
       }
     } catch (error) {

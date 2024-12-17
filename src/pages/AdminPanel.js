@@ -236,7 +236,7 @@ const ADMIN_ID = '674e4b8c22fc2df1f90d95ae'; // Hardcoded Admin User ID
                   .filter((order) => order.status === 'Pending')
                   .map((order) => (
                     <li key={order._id} className="flex justify-between border-b py-2">
-                      {order.name} - ${order.totalAmount}
+                      {order.name} - Ksh{order.totalAmount}
                       <button
                         onClick={() => markAsComplete(order._id)}
                         className="bg-green-500 text-white px-2 py-1"

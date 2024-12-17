@@ -71,7 +71,7 @@ const Navbar = () => {
       </div>
 
       {/* Main Navbar */}
-      <nav className="container mx-auto flex items-center justify-between py-4 relative">
+      <nav className="container mx-auto font-['Poppins'] flex items-center justify-between py-4 relative">
         {/* Logo */}
         <Link
           to="/"

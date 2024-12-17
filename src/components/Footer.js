@@ -11,6 +11,8 @@ const Footer = () => {
   const [supportDropdownOpen, setSupportDropdownOpen] = useState(false);
   const [categoriesOpen, setCategoriesOpen] = useState(false);
 
+  const ADMIN_ID = '674e4b8c22fc2df1f90d95ae'; // Replace with your Admin ID
+
   const categories = [
     'Airtime',
     'Animal Feeds',
@@ -71,14 +73,14 @@ const Footer = () => {
   return (
     <footer className="bg-gray-300 text-gray-900 py-6 fixed bottom-0 w-full md:relative z-30">
       {/* Desktop Footer */}
-      <div className="container mx-auto text-center hidden md:block">
+      <div className="container mx-auto font-['Poppins'] text-center hidden md:block">
         <p className="text-gray-600">
           &copy; 2024 Gatangu Enterprises. All rights reserved.
         </p>
       </div>
 
       {/* Mobile Footer Navigation */}
-      <div className="flex justify-around md:hidden bg-gray-200 text-gray-800 py-4">
+      <div className="flex justify-around font-['Poppins'] md:hidden bg-gray-200 text-gray-800 py-4">
         {/* Logo */}
         <Link
           to="/"
@@ -147,6 +149,17 @@ const Footer = () => {
                         Profile
                       </Link>
                     </li>
+                    {user.id === ADMIN_ID && (
+                      <li>
+                        <Link
+                          to="/admin-panel"
+                          className="block px-4 py-2 hover:bg-gray-200"
+                          onClick={() => setAccountDropdownOpen(false)}
+                        >
+                          Admin Panel
+                        </Link>
+                      </li>
+                    )}
                     <li>
                       <button
                         onClick={() => {

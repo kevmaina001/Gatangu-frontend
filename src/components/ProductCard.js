@@ -50,7 +50,7 @@ const ProductCard = ({ product }) => {
           fontSize: '0.9rem',
         }}
       >
-        ksh. {product.price}
+      <span className="font-bold">ksh.</span> {product.price}
       </p>
     </Link>
   );

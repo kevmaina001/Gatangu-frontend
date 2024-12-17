@@ -3,11 +3,13 @@ import { useCart } from '../context/CartContext';
 import { Link } from 'react-router-dom';
 import PaystackPayment from '../components/PaystackPayment';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const CartPage = () => {
   const { cart, removeFromCart, updateQuantity, clearCart } = useCart();
   const [formData, setFormData] = useState({ name: '', email: '', location: '', note: '' });
   const { user } = useAuth();
+  const navigate = useNavigate(); // Hook for programmatic navigation
   const [loading, setLoading] = useState(false);
 
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -24,6 +26,13 @@ const CartPage = () => {
 
   const handlePaymentSuccess = async (reference) => {
     await submitOrder(reference.reference);
+  };
+
+  const handlePlaceOrder = () => {
+    if (!user) {
+      // Redirect to the register page with a state for redirection
+      navigate('/register', { state: { from: '/cart' } });
+    }
   };
 
   const submitOrder = async (paymentReference) => {
@@ -51,7 +60,6 @@ const CartPage = () => {
       if (response.ok) {
         alert('Order placed successfully! Thank you For Shopping with our E-commerce platform');
         sendOrderDetailsToWhatsApp(); // Send order details via WhatsApp
-
         clearCart();
       } else {
         alert(`Failed to place the order: ${data.message || 'Unknown error'}`);
@@ -62,11 +70,12 @@ const CartPage = () => {
       setLoading(false);
     }
   };
+
   const sendOrderDetailsToWhatsApp = () => {
     const formattedCart = cart
       .map((item) => `${item.name} - Qty: ${item.quantity}, Price: Ksh. ${item.price}`)
       .join('%0A'); // %0A is for a new line in URLs
-  
+
     const message = `
       *New Order Placed*%0A
       *Name:* ${formData.name}%0A
@@ -76,22 +85,20 @@ const CartPage = () => {
       *Total Amount:* Ksh. ${totalAmount}%0A%0A
       *Order Items:*%0A${formattedCart}
     `;
-  
+
     const whatsappURL = `https://wa.me/254708328905?text=${encodeURI(message)}`;
     window.open(whatsappURL, '_blank');
   };
-  
 
   return (
     <div className="container mx-auto pt-[10rem] pb-40 px-4">
       <h2 className="text-5xl font-playfair mb-8 text-center text-gray-800 tracking-wide">
-          Shopping Cart
-        </h2>
-
+        Shopping Cart
+      </h2>
 
       {cart.length > 0 ? (
         <>
-         <ul className="space-y-6">
+          <ul className="space-y-6">
             {cart.map((item) => (
               <li
                 key={item._id}
@@ -99,11 +106,6 @@ const CartPage = () => {
               >
                 {/* Image and Item Details */}
                 <div className="flex items-center space-x-4 mb-4 sm:mb-0 w-full sm:w-auto">
-                  {/* <img
-                    src={item.image ? `${API_URL}/${item.image}` : '/images/placeholder.jpg'}
-                    alt={item.name}
-                    className="w-16 h-16 object-cover rounded-lg"
-                  /> */}
                   <div className="flex-1">
                     <h4 className="font-semibold text-lg text-gray-800">{item.name}</h4>
                     <p className="text-sm text-gray-600">Price: Ksh. {item.price}</p>
@@ -143,66 +145,81 @@ const CartPage = () => {
                 </div>
 
                 {/* Total Price */}
-                <p className="font-bold text-gray-700 mt-2 sm:mt-0">Ksh. {item.price * item.quantity}</p>
+                <p className="font-bold text-gray-700 mt-2 sm:mt-0">
+                  Ksh. {item.price * item.quantity}
+                </p>
               </li>
             ))}
           </ul>
-               
+
           <div className="bg-white rounded-lg shadow-md p-6 mt-10 max-w-lg mx-auto">
             <h3 className="text-2xl font-semibold mb-4 text-gray-800">Checkout Details</h3>
-            <input
-              type="text"
-              name="name"
-              placeholder="Full Name"
-              value={formData.name}
-              onChange={handleInputChange}
-              className="w-full border border-gray-300 p-3 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-green-500"
-              required
-            />
-            <input
-              type="email"
-              name="email"
-              placeholder="Enter Email to receive receipt"
-              value={formData.email}
-              onChange={handleInputChange}
-              className="w-full border border-gray-300 p-3 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-green-500"
-              required
-            />
-            <input
-              type="text"
-              name="location"
-              placeholder="Location"
-              value={formData.location}
-              onChange={handleInputChange}
-              className="w-full border border-gray-300 p-3 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-green-500"
-              required
-            />
-            <textarea
-              name="note"
-              placeholder="Add a note (e.g., delivery instructions)"
-              value={formData.note}
-              onChange={handleInputChange}
-              className="w-full border border-gray-300 p-3 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-green-500"
-            ></textarea>
+            {!user ? (
+              <button
+                onClick={handlePlaceOrder}
+                className="w-full bg-yellow-500 text-white py-2 rounded-md hover:bg-yellow-600 transition"
+              >
+                Sign Up to Place Order
+              </button>
+            ) : (
+              <>
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Full Name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 p-3 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  required
+                />
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Enter Email to receive receipt"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 p-3 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  required
+                />
+                <input
+                  type="text"
+                  name="location"
+                  placeholder="Location"
+                  value={formData.location}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 p-3 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-green-500"
+                  required
+                />
+                <textarea
+                  name="note"
+                  placeholder="Add a note (e.g., delivery instructions)"
+                  value={formData.note}
+                  onChange={handleInputChange}
+                  className="w-full border border-gray-300 p-3 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-green-500"
+                ></textarea>
 
-            <PaystackPayment
-              amount={totalAmount}
-              email={formData.email}
-              onSuccess={handlePaymentSuccess}
-              onClose={() => console.log('Payment closed')}
-            />
-            {loading && <p className="text-center text-gray-500 mt-4">Placing your order...</p>}
+                <PaystackPayment
+                  amount={totalAmount}
+                  email={formData.email}
+                  onSuccess={handlePaymentSuccess}
+                  onClose={() => console.log('Payment closed')}
+                />
+                {loading && <p className="text-center text-gray-500 mt-4">Placing your order...</p>}
+              </>
+            )}
           </div>
         </>
       ) : (
         <p className="text-center text-gray-500 animate-fadeIn">
           Your shopping basket is empty. Don’t miss out on great deals!{' '}
-          <Link to="/" className="text-green-500 hover:underline hover:text-green-600 transition-colors">
-            Start shopping now 
-          </Link>
-          {' '} at Gatangu Enterprises Dashboard to find amazing products.
+          <Link
+            to="/"
+            className="text-green-500 hover:underline hover:text-green-600 transition-colors"
+          >
+            Start shopping now
+          </Link>{' '}
+          at Gatangu Enterprises Dashboard to find amazing products.
         </p>
-
       )}
     </div>
   );
