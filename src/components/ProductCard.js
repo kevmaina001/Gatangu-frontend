@@ -2,55 +2,50 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 const ProductCard = ({ product }) => {
-  // Determine base URL based on the environment
-  const baseURL =
-    window.location.hostname === 'localhost'
-      ? 'http://localhost:5000'
-      : 'https://gatangu-backend-1.onrender.com';
+  // Use dynamic API URL
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   return (
     <Link
       to={`/products/${product._id}`}
-      className="block border border-white p-4 hover:shadow-lg transition-shadow"
+      className="block border border-gray-200 p-4 hover:shadow-lg transition-shadow rounded-lg"
       style={{
-        backgroundColor: '#ffffff', // Plain white background
-        width: '90%', // Consistent card size
-        margin: 'auto', // Center the card
+        backgroundColor: '#ffffff',
+        width: '90%',
+        margin: 'auto',
       }}
     >
+      {/* Image Container */}
       <div
-        className="w-full h-48 flex items-center justify-center mb-4"
-        style={{
-          overflow: 'hidden', // Prevent overflow
-          backgroundColor: '#ffffff', // Remove grey effect
-        }}
+        className="w-full h-48 flex items-center justify-center mb-4 bg-gray-100 rounded-md overflow-hidden"
       >
         <img
-          src={`${baseURL}/${product.image}`} // Use the dynamically determined base URL
+          src={`${API_URL}/${product.image}`}
           alt={product.name}
-          className="object-cover"
-          style={{
-            maxHeight: '100%', // Scale within container
-            maxWidth: '100%',
-          }}
+          className="object-cover w-full h-full"
         />
       </div>
+
+      {/* Product Name */}
       <h3
-        className="text-gray-800 mb-1 font-medium text-center"
+        className="text-gray-800 mb-2 text-center font-semibold"
         style={{
-          fontSize: '1rem',
-          fontFamily: `'Roboto Condensed', sans-serif`,
+          fontFamily: `'Poppins', serif`,
+          fontSize: '1.1rem',
         }}
       >
         {product.name}
       </h3>
+
+      {/* Product Price */}
       <p
-        className="text-gray-600 text-center"
+        className="text-gray-700 text-center"
         style={{
-          fontSize: '0.9rem',
+          fontFamily: `'Playfair Display', serif`,
+          fontSize: '1rem',
         }}
       >
-      <span className="font-bold">ksh.</span> {product.price}
+        <span className="font-bold">ksh.</span> {product.price}
       </p>
     </Link>
   );
