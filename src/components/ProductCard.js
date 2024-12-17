@@ -2,50 +2,55 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 const ProductCard = ({ product }) => {
-  // Use dynamic API URL
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  // Determine base URL based on the environment
+  const baseURL =
+    window.location.hostname === 'localhost'
+      ? 'http://localhost:5000'
+      : 'https://gatangu-backend-1.onrender.com';
 
   return (
     <Link
-      to={`/products/${product._id}`}
-      className="block border border-gray-200 p-4 hover:shadow-lg transition-shadow rounded-lg"
+      to={`/products/${product._id}`} // Fixed: Added backticks for template literals
+      className="block border border-white p-4 hover:shadow-lg transition-shadow"
       style={{
-        backgroundColor: '#ffffff',
-        width: '90%',
-        margin: 'auto',
+        backgroundColor: '#ffffff', // Plain white background
+        width: '90%', // Consistent card size
+        margin: 'auto', // Center the card
       }}
     >
-      {/* Image Container */}
       <div
-        className="w-full h-48 flex items-center justify-center mb-4 bg-gray-100 rounded-md overflow-hidden"
+        className="w-full h-48 flex items-center justify-center mb-4"
+        style={{
+          overflow: 'hidden', // Prevent overflow
+          backgroundColor: '#ffffff', // Remove grey effect
+        }}
       >
         <img
-          src={`${API_URL}/${product.image}`}
+          src={`${baseURL}/${product.image}`} // Fixed: Added backticks for template literals
           alt={product.name}
-          className="object-cover w-full h-full"
+          className="object-cover"
+          style={{
+            maxHeight: '100%', // Scale within container
+            maxWidth: '100%',
+          }}
         />
       </div>
-
-      {/* Product Name */}
       <h3
-        className="text-gray-800 mb-2 text-center font-semibold"
+        className="text-gray-800 mb-1 font-medium text-center"
         style={{
-          fontFamily: `'Poppins', serif`,
-          fontSize: '1.1rem',
+          fontSize: '1rem',
+          fontFamily: "'Roboto Condensed', sans-serif", // Fixed font-family syntax
         }}
       >
         {product.name}
       </h3>
-
-      {/* Product Price */}
       <p
-        className="text-gray-700 text-center"
+        className="text-gray-600 text-center"
         style={{
-          fontFamily: `'Playfair Display', serif`,
-          fontSize: '1rem',
+          fontSize: '0.9rem',
         }}
       >
-        <span className="font-bold">ksh.</span> {product.price}
+        ksh. {product.price}
       </p>
     </Link>
   );
