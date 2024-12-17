@@ -53,16 +53,19 @@ const Home = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await api.get('/products');
-        setFeaturedProducts(response.data.slice(0, 13)); // Fetch the first 13 products
+        const response = await api.get('/products'); // Fetch all products
+        const sortedProducts = response.data.reverse(); // Reverse the list for LIFO behavior
+        setFeaturedProducts(sortedProducts.slice(0, 20)); // Take the last 20 products
         setError(false);
       } catch (error) {
         setError(true);
       }
     };
-
+  
     fetchProducts();
   }, []);
+  
+  
 
   return (
     <div
