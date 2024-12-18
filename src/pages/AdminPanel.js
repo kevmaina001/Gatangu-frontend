@@ -139,7 +139,7 @@ const ADMIN_ID = '674e4b8c22fc2df1f90d95ae'; // Hardcoded Admin User ID
   
 
   return (
-    <div className="container mx-auto pt-60">
+    <div className="container mx-auto pt-44 pb-40">
       {/* Tabs */}
       <div className="flex space-x-4 mb-6">
         <button
