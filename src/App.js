@@ -16,6 +16,8 @@ import Profile from './pages/Profile';
 import AdminPanel from './pages/AdminPanel';
 import AddProduct from './pages/AddProduct';
 import PasswordRecovery from './pages/PasswordRecovery';
+import ResetPassword from './pages/ResetPassword'; // Import the ResetPassword component
+
 
 // import ManageOrders from './pages/ManageOrders';
 // import ViewOrders from './pages/ViewOrders';
@@ -47,11 +49,14 @@ const App = () => {
                 <Route path="/view-orders" element={<ViewOrders />} /> */}
                 <Route path="/login" element={<SignIn />} />
                 <Route path="/password-recovery" element={<PasswordRecovery />} />
+                <Route path="/reset-password" element={<ResetPassword />} /> {/* Add this route */}
+
 
                 <Route path="/register" element={<SignUp />} />
                 <Route path="/category/:categoryName" element={<CategoryProducts />} />
 
                 <Route path="/search" element={<SearchResults />} />
+
                 
               </Routes>
             </main>
