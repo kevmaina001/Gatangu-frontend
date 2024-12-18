@@ -1,5 +1,5 @@
 import React, { useState, useContext } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 
 const SignIn = () => {
@@ -8,7 +8,7 @@ const SignIn = () => {
   const [error, setError] = useState(null);
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
-  const location = useLocation(); // To retrieve state
+  const location = useLocation();
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
   const handleSignIn = async (e) => {
@@ -27,8 +27,6 @@ const SignIn = () => {
       if (response.ok) {
         localStorage.setItem('authToken', data.token);
         login(data.token, data.user);
-
-        // Redirect back to intended page or home
         const redirectPath = location.state?.from || '/';
         navigate(redirectPath);
       } else {
@@ -73,6 +71,14 @@ const SignIn = () => {
             Sign In
           </button>
         </form>
+        <div className="mt-4 text-center">
+          <Link
+            to="/password-recovery"
+            className="text-yellow-500 hover:underline"
+          >
+            Forgot Password?
+          </Link>
+        </div>
       </div>
     </div>
   );
