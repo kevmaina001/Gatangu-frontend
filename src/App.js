@@ -16,11 +16,7 @@ import Profile from './pages/Profile';
 import AdminPanel from './pages/AdminPanel';
 import AddProduct from './pages/AddProduct';
 import PasswordRecovery from './pages/PasswordRecovery';
-import ResetPassword from './pages/ResetPassword'; // Import the ResetPassword component
-
-
-// import ManageOrders from './pages/ManageOrders';
-// import ViewOrders from './pages/ViewOrders';
+import ResetPassword from './pages/ResetPassword';
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import CategoryProducts from './pages/CategoryProducts';
@@ -32,32 +28,28 @@ const App = () => {
       <AuthProvider>
         <CartProvider>
           <div className="flex flex-col min-h-screen">
-            {/* Navigation Bar */}
+            {/* Navbar */}
             <Navbar />
 
             {/* Main Content */}
             <main className="flex-grow">
               <Routes>
+                {/* Public Routes */}
                 <Route path="/" element={<Home />} />
                 <Route path="/products/:id" element={<ProductDetails />} />
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/checkout" element={<Checkout />} />
+                <Route path="/login" element={<SignIn />} />
+                <Route path="/register" element={<SignUp />} />
+                <Route path="/password-recovery" element={<PasswordRecovery />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/category/:categoryName" element={<CategoryProducts />} />
+                <Route path="/search" element={<SearchResults />} />
+
+                {/* Protected/Admin Routes */}
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/admin-panel" element={<AdminPanel />} />
                 <Route path="/add-product" element={<AddProduct />} />
-                {/* <Route path="/manage-orders" element={<ManageOrders />} />
-                <Route path="/view-orders" element={<ViewOrders />} /> */}
-                <Route path="/login" element={<SignIn />} />
-                <Route path="/password-recovery" element={<PasswordRecovery />} />
-                <Route path="/reset-password" element={<ResetPassword />} /> {/* Add this route */}
-
-
-                <Route path="/register" element={<SignUp />} />
-                <Route path="/category/:categoryName" element={<CategoryProducts />} />
-
-                <Route path="/search" element={<SearchResults />} />
-
-                
               </Routes>
             </main>
 
