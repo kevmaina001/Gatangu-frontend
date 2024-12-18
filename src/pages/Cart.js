@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import PaystackPayment from '../components/PaystackPayment';
+import fetchWithAuth from '../utils/fetchWithAuth';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 
 const CartPage = () => {
   const { cart, removeFromCart, updateQuantity, clearCart } = useCart();
   const [formData, setFormData] = useState({ name: '', email: '', location: '', note: '' });
-  const { user } = useAuth();
-  const navigate = useNavigate(); // Hook for programmatic navigation
+  const { user, token, logout } = useAuth();
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
   const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -24,13 +25,34 @@ const CartPage = () => {
     setFormData({ ...formData, [name]: value });
   };
 
+  const validateTokenBeforePayment = () => {
+    try {
+      const decoded = jwtDecode(token);
+
+      // Check if token is expired
+      if (decoded.exp * 1000 < Date.now()) {
+        alert('Session expired. Please log in again to proceed with payment.');
+        logout(); // Logout the user
+        navigate('/login'); // Redirect to login page
+        return false;
+      }
+      return true;
+    } catch (error) {
+      console.error('Token validation error:', error.message);
+      alert('Invalid session. Please log in again.');
+      logout();
+      navigate('/login');
+      return false;
+    }
+  };
+
   const handlePaymentSuccess = async (reference) => {
+    if (!validateTokenBeforePayment()) return; // Re-validate before submitting
     await submitOrder(reference.reference);
   };
 
   const handlePlaceOrder = () => {
     if (!user) {
-      // Redirect to the register page with a state for redirection
       navigate('/register', { state: { from: '/cart' } });
     }
   };
@@ -40,32 +62,40 @@ const CartPage = () => {
       alert('Please fill out all required fields before placing your order.');
       return;
     }
+
     setLoading(true);
     try {
-      const response = await fetch(`${API_URL}/orders`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({
-          ...formData,
-          cart,
-          totalAmount,
-          paymentReference,
-        }),
-      });
+      const response = await fetchWithAuth(
+        `${API_URL}/orders`,
+        token,
+        logout,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            ...formData,
+            cart,
+            totalAmount,
+            paymentReference,
+          }),
+        }
+      );
 
       const data = await response.json();
+      console.log('API Response:', data);
+
       if (response.ok) {
-        alert('Order placed successfully! Thank you For Shopping with our E-commerce platform');
-        sendOrderDetailsToWhatsApp(); // Send order details via WhatsApp
+        alert('Order placed successfully! Thank you for shopping with us.');
+        sendOrderDetailsToWhatsApp();
         clearCart();
       } else {
         alert(`Failed to place the order: ${data.message || 'Unknown error'}`);
       }
     } catch (error) {
-      alert('An error occurred. Please try again.');
+      console.error('Error submitting order:', error.message);
+      alert('An error occurred while placing your order.');
     } finally {
       setLoading(false);
     }
@@ -74,7 +104,7 @@ const CartPage = () => {
   const sendOrderDetailsToWhatsApp = () => {
     const formattedCart = cart
       .map((item) => `${item.name} - Qty: ${item.quantity}, Price: Ksh. ${item.price}`)
-      .join('%0A'); // %0A is for a new line in URLs
+      .join('%0A');
 
     const message = `
       *New Order Placed*%0A
@@ -100,19 +130,13 @@ const CartPage = () => {
         <>
           <ul className="space-y-6">
             {cart.map((item) => (
-              <li
-                key={item._id}
-                className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow"
-              >
-                {/* Image and Item Details */}
+              <li key={item._id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow">
                 <div className="flex items-center space-x-4 mb-4 sm:mb-0 w-full sm:w-auto">
                   <div className="flex-1">
                     <h4 className="font-semibold text-lg text-gray-800">{item.name}</h4>
                     <p className="text-sm text-gray-600">Price: Ksh. {item.price}</p>
                   </div>
                 </div>
-
-                {/* Quantity Controls and Remove Button */}
                 <div className="flex items-center space-x-4 w-full sm:w-auto">
                   <div className="flex items-center border border-gray-300 rounded-md">
                     <button
@@ -143,8 +167,6 @@ const CartPage = () => {
                     Remove
                   </button>
                 </div>
-
-                {/* Total Price */}
                 <p className="font-bold text-gray-700 mt-2 sm:mt-0">
                   Ksh. {item.price * item.quantity}
                 </p>
