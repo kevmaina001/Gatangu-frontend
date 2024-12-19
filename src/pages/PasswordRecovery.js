@@ -21,7 +21,7 @@ const PasswordRecovery = () => {
       const data = await response.json();
 
       if (response.ok) {
-        setMessage('A password reset link has been sent to your email.');
+        setMessage('A password reset link has been sent to your email. If not sent to your mail, check the spam box for the email. In case of any issue contact support');
       } else {
         setError(data.message || 'Failed to send recovery email.');
       }
