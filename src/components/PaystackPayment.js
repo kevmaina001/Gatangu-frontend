@@ -3,7 +3,7 @@ import { PaystackButton } from 'react-paystack';
 
 const PaystackPayment = ({ amount, email, onSuccess, onClose }) => {
   const [error, setError] = useState(null);
-  const publicKey = 'pk_live_ce30fb917a1c53531bd026eb6e0dc22708ef89f7';
+  const publicKey = 'pk_live_21e4b51404eaf8f48573ed643779daad54171a86';
   const currency = 'KES'; // Set to Kenyan Shillings
 
   const handlePaymentClose = () => {

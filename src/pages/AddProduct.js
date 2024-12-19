@@ -132,11 +132,40 @@ const AddProduct = () => {
             required
           >
             <option value="" disabled>Select a category</option>
-            {['Airtime', 'Animal Feeds', 'Bakery', 'Medicine', 'Groceries', 'Hardware'].map((category) => (
+            {[
+              'Airtime',
+              'Animal Feeds',
+              'Animal Health',
+              'Baby Hygiene',
+              'Bakery',
+              'Beverages',
+              'Cereals & Ext.',
+              'Cigarettes',
+              'Confectionery',
+              'Display Dept',
+              'Farm Inputs',
+              'Fats & Oils',
+              'Flour & Rice',
+              'Food Additives',
+              'Groceries',
+              'Hardware',
+              'Household',
+              'Lighters',
+              'Lightings',
+              'Medicine',
+              'Milk',
+              'Packaging',
+              'Personal Care',
+              'Spreads',
+              'Stationery',
+              'Warehouse',
+              'Wholesale',
+            ].map((category) => (
               <option key={category} value={category}>
                 {category}
               </option>
             ))}
+
           </select>
         </div>
         <div>
