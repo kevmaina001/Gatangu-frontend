@@ -9,6 +9,7 @@ import 'swiper/css/pagination';
 const Home = () => {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [error, setError] = useState(false);
+  const [loading, setLoading] = useState(true); // Add loading state
 
   const categories = [
     'Airtime',
@@ -52,6 +53,7 @@ const Home = () => {
 
   useEffect(() => {
     const fetchProducts = async () => {
+      setLoading(true); // Set loading to true before the API call
       try {
         const response = await api.get('/products'); // Fetch all products
         const sortedProducts = response.data.reverse(); // Reverse the list for LIFO behavior
@@ -59,13 +61,13 @@ const Home = () => {
         setError(false);
       } catch (error) {
         setError(true);
+      } finally {
+        setLoading(false); // Set loading to false after API call completes
       }
     };
-  
+
     fetchProducts();
   }, []);
-  
-  
 
   return (
     <div
@@ -119,8 +121,12 @@ const Home = () => {
             {/* Featured Products Section */}
             <div className="my-8 px-4 md:px-12">
               <h2 className="text-xl font-bold mb-6 text-gray-800 font-roboto-slab">Featured Products</h2>
-              {error ? (
-                <p className="text-red-500">Failed to fetch products. Please try again.</p>
+              {loading ? (
+                <div className="text-center">
+                  <p className="text-yellow-500 font-medium">Loading products...</p>
+                </div>
+              ) : error ? (
+                <p className="text-red-500">Failed to fetch products. Please reload the page again.</p>
               ) : (
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
                   {featuredProducts.map((product) => (

@@ -2,27 +2,30 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 
 const ProductCard = ({ product }) => {
-  // Determine base URL for local vs production environments
-  const baseURL =
-    window.location.hostname === 'localhost'
-      ? 'http://localhost:5000'
-      : 'https://gatangu-backend-1.onrender.com';
-
   // Get the final image URL
   const getFinalImageURL = (imagePath) => {
-    if (!imagePath) return '/fallback.jpg'; // Fallback image
+    if (!imagePath) {
+      console.warn('Product image is missing for:', product.name);
+      return '/fallback.jpg'; // Fallback image
+    }
 
     // Return external or Cloudinary URLs directly
     if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
       return imagePath;
     }
 
-    // Handle local uploads and clean path
-    const cleanedPath = imagePath.replace(/\\/g, '/').replace(/\/{2,}/g, '/').replace(/^\/+/, '');
-    return `${baseURL}/${cleanedPath.includes('uploads/') ? cleanedPath : `uploads/${cleanedPath}`}`;
+    // Handle unexpected local paths (shouldn't occur with Cloudinary)
+    console.warn('Unexpected local image path detected:', imagePath);
+    return `/fallback.jpg`;
   };
 
   const finalImageURL = getFinalImageURL(product.image);
+
+  console.log('Rendering Product:', {
+    name: product.name,
+    image: product.image,
+    finalImageURL,
+  });
 
   return (
     <Link
@@ -35,7 +38,10 @@ const ProductCard = ({ product }) => {
           src={finalImageURL}
           alt={product.name}
           className="object-cover max-h-full max-w-full"
-          onError={(e) => (e.target.src = '/fallback.jpg')} // Fallback image
+          onError={(e) => {
+            console.error('Image failed to load:', finalImageURL);
+            e.target.src = '/fallback.jpg'; // Fallback image
+          }}
         />
       </div>
 
