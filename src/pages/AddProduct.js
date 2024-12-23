@@ -18,12 +18,14 @@ const AddProduct = () => {
   // Handle input field changes
   const handleChange = (e) => {
     const { name, value } = e.target;
+    console.log(`Input changed: ${name} = ${value}`);
     setProductData({ ...productData, [name]: value });
   };
 
   // Handle file selection
   const handleFileChange = (e) => {
     const file = e.target.files[0];
+    console.log('File selected:', file);
     setProductData({ ...productData, image: file });
 
     // Image preview
@@ -50,6 +52,9 @@ const AddProduct = () => {
     formData.append('description', productData.description);
     formData.append('image', productData.image);
 
+    // Debug form data
+    console.log('Form Data:', [...formData.entries()]);
+
     try {
       const response = await fetch(`${API_URL}/products`, {
         method: 'POST',
@@ -57,7 +62,7 @@ const AddProduct = () => {
       });
 
       const data = await response.json();
-      console.log('Response:', data);
+      console.log('Response from server:', data);
 
       if (response.ok) {
         setMessage({ text: 'Product added successfully!', type: 'success' });
@@ -72,9 +77,10 @@ const AddProduct = () => {
         setImagePreview(null);
       } else {
         setMessage({ text: `Failed to add product: ${data.message || 'Unknown error'}`, type: 'error' });
+        console.error('Server responded with an error:', data);
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error during form submission:', error);
       setMessage({ text: 'A network error occurred. Please try again later.', type: 'error' });
     } finally {
       setLoading(false);
