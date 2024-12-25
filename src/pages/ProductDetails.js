@@ -13,17 +13,31 @@ const ProductDetails = () => {
   const [error, setError] = useState(null);
   const [quantity, setQuantity] = useState(1); // Quantity state
 
-  // Determine the base URL based on the environment
-  const baseURL =
-    window.location.hostname === 'localhost'
-      ? 'http://localhost:5000'
-      : 'https://gatangu-backend-1.onrender.com';
+  // Helper function to get the final image URL
+  const getFinalImageURL = (imagePath) => {
+    if (!imagePath) return '/fallback.jpg'; // Fallback for missing image paths
+
+    // Check if the image path is an external URL (e.g., Cloudinary)
+    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+      return imagePath;
+    }
+
+    // Handle local uploads and sanitize the path
+    const baseURL =
+      window.location.hostname === 'localhost'
+        ? 'http://localhost:5000'
+        : 'https://gatangu-backend-1.onrender.com';
+
+    const cleanedPath = imagePath.replace(/\\/g, '/').replace(/^\/+/, '');
+    return `${baseURL}/${cleanedPath.includes('uploads/') ? cleanedPath : `uploads/${cleanedPath}`}`;
+  };
 
   useEffect(() => {
     const fetchProductDetails = async () => {
       try {
         const response = await api.get(`/products/${id}`);
-        setProduct(response.data);
+        const fetchedProduct = response.data;
+        setProduct(fetchedProduct);
         setError(null);
       } catch (err) {
         setError('Failed to load product details. Please try again.');
@@ -75,22 +89,24 @@ const ProductDetails = () => {
     );
   }
 
+  const finalImageURL = getFinalImageURL(product.image);
+
   return (
     <div className="container mx-auto font-['Poppins'] pt-[15rem] pb-60 rem bg-white px-4 md:px-12">
       {/* Toast Container */}
       <ToastContainer />
 
       <div className="flex flex-col md:flex-row items-center md:items-start">
-        {/* Scaled-Down Product Image */}
+        {/* Product Image */}
         <div className="w-full md:w-1/3 mb-6 md:mb-0">
           <div className="bg-gray-100 rounded-lg overflow-hidden shadow-md">
             <img
-              src={`${baseURL}/${product.image}`} // Dynamically constructed path
+              src={finalImageURL}
               alt={product.name}
               className="w-full object-contain p-4"
-              style={{ height: '200px' }} // Reduced height for scaling
+              style={{ height: '200px' }} // Scaled height
               onError={(e) => {
-                console.error('Image failed to load:', `${baseURL}/${product.image}`);
+                console.error('Image failed to load:', finalImageURL);
                 e.target.src = '/fallback.jpg'; // Use fallback image if the image fails to load
               }}
             />
