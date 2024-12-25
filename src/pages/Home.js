@@ -48,6 +48,7 @@ const Home = () => {
     '/images/logo.jpg',
     '/images/placeholder3.jpg',
     '/images/placeholder.jpg',
+    '/images/placeholder6.jpg',
     '/images/placeholder4.jpg',
   ];
 
