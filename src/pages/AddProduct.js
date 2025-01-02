@@ -1,148 +1,226 @@
-import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import api from '../services/api';
-import { useCart } from '../context/CartContext';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import React, { useState } from 'react';
 
-const ProductDetails = () => {
-  const { id } = useParams();
-  const { addToCart } = useCart();
-  const [product, setProduct] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [quantity, setQuantity] = useState(1);
+const AddProduct = () => {
+  const [productData, setProductData] = useState({
+    name: '',
+    price: '',
+    category: '',
+    quantityScale: '',
+    description: '',
+    image: null,
+  });
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState({ text: '', type: '' });
+  const [imagePreview, setImagePreview] = useState(null);
 
-  const getFinalImageURL = (imagePath) => {
-    if (!imagePath) return '/fallback.jpg'; // Fallback for missing image
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-    // If the imagePath is a full Cloudinary URL, return it directly
-    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-      return imagePath;
-    }
-
-    // Handle other cases where imagePath may not be fully qualified
-    const baseURL =
-      window.location.hostname === 'localhost'
-        ? 'http://localhost:5000'
-        : 'https://gatangu-backend-1.onrender.com';
-    const cleanedPath = imagePath.replace(/\\/g, '/').replace(/^\/+/, '');
-    return `${baseURL}/${cleanedPath}`;
+  // Handle input field changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setProductData((prevData) => ({ ...prevData, [name]: value }));
   };
 
-  useEffect(() => {
-    const fetchProductDetails = async () => {
-      try {
-        const response = await api.get(`/products/${id}`);
-        const fetchedProduct = response.data;
+  // Handle file selection
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setProductData((prevData) => ({ ...prevData, image: file }));
 
-        // Debugging
-        console.log('Fetched Product:', fetchedProduct);
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => setImagePreview(reader.result);
+      reader.readAsDataURL(file);
+    } else {
+      setImagePreview(null);
+    }
+  };
 
-        setProduct(fetchedProduct);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching product details:', err);
-        setError('Failed to load product details. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Handle form submission
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage({ text: '', type: '' });
 
-    fetchProductDetails();
-  }, [id]);
+    const formData = new FormData();
+    formData.append('name', productData.name);
+    formData.append('price', productData.price);
+    formData.append('category', productData.category);
+    formData.append('quantityScale', productData.quantityScale);
+    formData.append('description', productData.description);
+    formData.append('image', productData.image);
 
-  const handleAddToCart = () => {
-    if (product) {
-      addToCart(product, quantity);
-      toast.success(`${product.name} added to cart!`, {
-        position: 'top-right',
-        autoClose: 3000,
+    try {
+      const response = await fetch(`${API_URL}/products`, {
+        method: 'POST',
+        body: formData,
       });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setMessage({ text: 'Product added successfully!', type: 'success' });
+        setProductData({
+          name: '',
+          price: '',
+          category: '',
+          quantityScale: '',
+          description: '',
+          image: null,
+        });
+        setImagePreview(null);
+      } else {
+        setMessage({
+          text: `Failed to add product: ${data.message || 'Unknown error'}`,
+          type: 'error',
+        });
+      }
+    } catch (error) {
+      setMessage({ text: 'A network error occurred. Please try again later.', type: 'error' });
+    } finally {
+      setLoading(false);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="loader"></div>
-        <p>Loading product details...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex justify-center items-center h-screen text-red-500">
-        {error}
-      </div>
-    );
-  }
-
-  if (!product) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p>No product found.</p>
-      </div>
-    );
-  }
-
-  const finalImageURL = getFinalImageURL(product.image);
 
   return (
-    <div className="container mx-auto font-['Poppins'] pt-[15rem] pb-60 bg-white px-4 md:px-12">
-      <ToastContainer />
+    <div className="container mx-auto pt-32">
+      <h1 className="text-2xl font-bold mb-6">Add Product</h1>
 
-      <div className="flex flex-col md:flex-row items-center md:items-start">
-        <div className="w-full md:w-1/3 mb-6 md:mb-0">
-          <div className="bg-gray-100 rounded-lg overflow-hidden shadow-md">
-            <img
-              src={finalImageURL}
-              alt={product.name}
-              className="w-full object-contain p-4"
-              style={{ height: '200px' }}
-              onError={(e) => {
-                console.error('Image failed to load:', finalImageURL);
-                e.target.src = '/fallback.jpg'; // Use fallback image
-              }}
-            />
-          </div>
+      {/* Display success/error messages */}
+      {message.text && (
+        <div
+          className={`p-4 mb-4 rounded ${
+            message.type === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+          }`}
+        >
+          {message.text}
         </div>
+      )}
 
-        <div className="w-full md:w-2/3 md:pl-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">{product.name}</h2>
-          <p className="text-gray-700 text-lg font-semibold mb-4">
-            Price: <span className="text-blue-600">Ksh. {product.price.toFixed(2)}</span>
-          </p>
-          <p className="text-gray-600 mb-6">{product.description}</p>
-
-          <div className="flex items-center space-x-4 mb-6">
-            <label htmlFor="quantity" className="text-gray-700 font-medium">
-              Quantity:
-            </label>
-            <input
-              id="quantity"
-              type="number"
-              value={quantity}
-              onChange={(e) => {
-                const value = Math.max(1, Number(e.target.value));
-                if (!isNaN(value)) setQuantity(value);
-              }}
-              className="w-16 border border-gray-300 rounded px-2 py-1 text-center text-gray-700"
-              min="1"
-            />
-          </div>
-
-          <button
-            onClick={handleAddToCart}
-            className="w-full md:w-auto bg-blue-500 text-white px-6 py-3 rounded-md hover:bg-blue-600 transition-all shadow-lg"
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="name" className="block text-gray-700">Product Name</label>
+          <input
+            type="text"
+            id="name"
+            name="name"
+            value={productData.name}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border rounded-md"
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="price" className="block text-gray-700">Price</label>
+          <input
+            type="number"
+            id="price"
+            name="price"
+            value={productData.price}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border rounded-md"
+            required
+          />
+        </div>
+        <div>
+          <label htmlFor="category" className="block text-gray-700">Category</label>
+          <select
+            id="category"
+            name="category"
+            value={productData.category}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border rounded-md"
+            required
           >
-            Add to Cart
-          </button>
+            <option value="" disabled>Select a category</option>
+            {[
+              'Airtime',
+              'Animal Feeds',
+              'Animal Health',
+              'Baby Hygiene',
+              'Bakery',
+              'Beverages',
+              'Cereals & Ext.',
+              'Cigarettes',
+              'Confectionery',
+              'Display Dept',
+              'Farm Inputs',
+              'Fats & Oils',
+              'Flour & Rice',
+              'Food Additives',
+              'Groceries',
+              'Hardware',
+              'Household',
+              'Lighters',
+              'Lightings',
+              'Medicine',
+              'Milk',
+              'Packaging',
+              'Personal Care',
+              'Spreads',
+              'Stationery',
+              'Warehouse',
+              'Wholesale',
+            ].map((category) => (
+              <option key={category} value={category}>
+                {category}
+              </option>
+            ))}
+          </select>
         </div>
-      </div>
+        <div>
+          <label htmlFor="quantityScale" className="block text-gray-700">Quantity Scale</label>
+          <select
+            id="quantityScale"
+            name="quantityScale"
+            value={productData.quantityScale}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border rounded-md"
+          >
+            <option value="" disabled>Select a scale</option>
+            <option value="Kg">Kg</option>
+            <option value="Grams">Grams</option>
+            <option value="Litres">Litres</option>
+            <option value="Packets">Packets</option>
+          </select>
+        </div>
+        <div>
+          <label htmlFor="description" className="block text-gray-700">Description</label>
+          <textarea
+            id="description"
+            name="description"
+            value={productData.description}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border rounded-md"
+            rows="3"
+          />
+        </div>
+        <div>
+          <label htmlFor="image" className="block text-gray-700">Upload Image</label>
+          <input
+            type="file"
+            id="image"
+            name="image"
+            onChange={handleFileChange}
+            className="w-full px-4 py-2 border rounded-md"
+            required
+          />
+          {imagePreview && (
+            <div className="mt-4">
+              <p className="text-gray-600">Image Preview:</p>
+              <img src={imagePreview} alt="Selected" className="h-32 w-auto mt-2" />
+            </div>
+          )}
+        </div>
+        <button
+          type="submit"
+          className={`px-6 py-2 rounded-md ${loading ? 'bg-gray-400' : 'bg-yellow-500 text-white'}`}
+          disabled={loading}
+        >
+          {loading ? 'Submitting...' : 'Add Product'}
+        </button>
+      </form>
     </div>
   );
 };
 
-export default ProductDetails;
+export default AddProduct;
