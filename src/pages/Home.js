@@ -50,6 +50,7 @@ const Home = () => {
     '/images/placeholder.jpg',
     '/images/placeholder6.jpg',
     '/images/placeholder4.jpg',
+    '/images/placeholder7.jpg',
   ];
 
   useEffect(() => {
@@ -58,7 +59,7 @@ const Home = () => {
       try {
         const response = await api.get('/products'); // Fetch all products
         const sortedProducts = response.data.reverse(); // Reverse the list for LIFO behavior
-        setFeaturedProducts(sortedProducts.slice(0, 20)); // Take the last 20 products
+        setFeaturedProducts(sortedProducts); // Store all products instead of slicing
         setError(false);
       } catch (error) {
         setError(true);

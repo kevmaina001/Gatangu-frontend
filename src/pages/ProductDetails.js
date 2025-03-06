@@ -61,6 +61,11 @@ const ProductDetails = () => {
         draggable: true,
         progress: undefined,
       });
+      
+      setTimeout(() => {
+        setQuantity(1); // Reset quantity after adding to cart
+      }, 1000);
+        
     }
   };
 
