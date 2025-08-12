@@ -6,6 +6,7 @@ import { CartProvider } from './context/CartContext';
 // Components
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
+import BottomNavigation from './components/BottomNavigation';
 
 // Pages
 import Home from './pages/Home';
@@ -21,6 +22,7 @@ import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
 import CategoryProducts from './pages/CategoryProducts';
 import SearchResults from './pages/SearchResults';
+import ProductList from './pages/ProductList';
 
 const App = () => {
   return (
@@ -45,6 +47,7 @@ const App = () => {
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/category/:categoryName" element={<CategoryProducts />} />
                 <Route path="/search" element={<SearchResults />} />
+                <Route path="/shop" element={<ProductList />} />
 
                 {/* Protected/Admin Routes */}
                 <Route path="/profile" element={<Profile />} />
@@ -55,6 +58,9 @@ const App = () => {
 
             {/* Footer */}
             <Footer />
+            
+            {/* Bottom Navigation - Mobile Only */}
+            <BottomNavigation />
           </div>
         </CartProvider>
       </AuthProvider>

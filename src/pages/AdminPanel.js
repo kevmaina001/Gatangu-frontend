@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import AddProduct from './AddProduct'; // Import AddProduct Component
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
+import fetchWithAuth from '../utils/fetchWithAuth';
 const AdminPanel = () => {
 const ADMIN_ID = '674e4b8c22fc2df1f90d95ae'; // Hardcoded Admin User ID
   const [activeTab, setActiveTab] = useState('addProduct');
@@ -10,8 +11,8 @@ const ADMIN_ID = '674e4b8c22fc2df1f90d95ae'; // Hardcoded Admin User ID
   const [loadingOrders, setLoadingOrders] = useState(true); // Loading state for orders
   const [editingProduct, setEditingProduct] = useState(null);
   const [editData, setEditData] = useState({});
-  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-  const { user } = useAuth(); // Retrieve user info
+  const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+  const { user, token, logout } = useAuth(); // Retrieve user info, token, and logout function
   const navigate = useNavigate();
 
   // Redirect if the user is not an admin
@@ -22,18 +23,14 @@ const ADMIN_ID = '674e4b8c22fc2df1f90d95ae'; // Hardcoded Admin User ID
       navigate('/');
     }
   }, [user, navigate]);
-  // Fetch Products and Orders on load
-  useEffect(() => {
-    fetchProducts();
-    fetchOrders();
-  }, []);
-
   // Fetch products from the backend
   const fetchProducts = async () => {
     try {
-      const res = await fetch(`${API_URL}/products`);
-      const data = await res.json();
-      setProducts(data);
+      const res = await fetch(`${API_URL}/api/products`);
+      if (res.ok) {
+        const data = await res.json();
+        setProducts(data);
+      }
     } catch (error) {
       console.error('Error fetching products:', error);
     }
@@ -43,30 +40,25 @@ const ADMIN_ID = '674e4b8c22fc2df1f90d95ae'; // Hardcoded Admin User ID
   const fetchOrders = async () => {
     setLoadingOrders(true);
     try {
-      const response = await fetch(`${API_URL}/orders`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem('token')}`, // Retrieve token
-        },
-      });
-  
-      const data = await response.json();
-  
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to fetch orders');
-      }
-  
-      if (Array.isArray(data)) {
-        setOrders(data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)));
-      } else {
-        console.error('Unexpected data format:', data);
-        setOrders([]); // Set orders to an empty array if response is invalid
+      const res = await fetchWithAuth(`${API_URL}/api/orders`, token, logout);
+      if (res.ok) {
+        const data = await res.json();
+        setOrders(Array.isArray(data) ? data : []);
       }
     } catch (error) {
-      console.error('Error fetching orders:', error.message);
+      console.error('Error fetching orders:', error);
+      setOrders([]);
     } finally {
       setLoadingOrders(false);
     }
   };
+
+  // Fetch Products and Orders on load
+  useEffect(() => {
+    fetchProducts();
+    fetchOrders();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   
 
   // Delete a product

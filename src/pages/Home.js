@@ -1,56 +1,51 @@
 import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import ProductCard from '../components/ProductCard';
 import api from '../services/api';
 import 'swiper/css';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Pagination, Autoplay } from 'swiper/modules';
+import { Pagination, Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css/pagination';
+import 'swiper/css/navigation';
+import { FaChevronRight, FaFire, FaTags, FaShoppingBag } from 'react-icons/fa';
+import { Link } from 'react-router-dom';
 
 const Home = () => {
   const [featuredProducts, setFeaturedProducts] = useState([]);
   const [error, setError] = useState(false);
-  const [loading, setLoading] = useState(true); // Add loading state
+  const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState('All');
 
   const categories = [
-    'Airtime',
-    'Animal Feeds',
-    'Animal Health',
-    'Baby Hygiene',
-    'Bakery',
-    'Beverages',
-    'Cereals & Ext.',
-    'Cigarettes',
-    'Confectionery',
-    'Display Dept',
-    'Farm Inputs',
-    'Fats & Oils',
-    'Flour & Rice',
-    'Food Additives',
-    'Groceries',
-    'Hardware',
-    'Household',
-    'Lighters',
-    'Lightings',
-    'Medicine',
-    'Milk',
-    'Packaging',
-    'Personal Care',
-    'Spreads',
-    'Stationery',
-    'Warehouse',
-    'Wholesale',
+    { name: 'All', icon: FaShoppingBag, color: 'bg-primary-500' },
+    { name: 'Beverages', icon: FaTags, color: 'bg-blue-500' },
+    { name: 'Groceries', icon: FaShoppingBag, color: 'bg-green-500' },
+    { name: 'Personal Care', icon: FaTags, color: 'bg-purple-500' },
+    { name: 'Household', icon: FaShoppingBag, color: 'bg-pink-500' },
+    { name: 'Bakery', icon: FaTags, color: 'bg-orange-500' },
+    { name: 'Medicine', icon: FaShoppingBag, color: 'bg-red-500' },
+    { name: 'Hardware', icon: FaTags, color: 'bg-gray-500' },
   ];
 
   const sliderImages = [
-    '/images/logo.jpg',
-    '/images/placeholder.jpg',
-    '/images/placeholder1.jpg',
-    '/images/logo.jpg',
-    '/images/placeholder3.jpg',
-    '/images/placeholder.jpg',
-    '/images/placeholder6.jpg',
-    '/images/placeholder4.jpg',
-    '/images/placeholder7.jpg',
+    {
+      url: '/images/logo.jpg',
+      title: 'Welcome to Gatangu',
+      subtitle: 'Your trusted local store',
+      cta: 'Shop Now'
+    },
+    {
+      url: '/images/placeholder1.jpg',
+      title: 'Fresh Products',
+      subtitle: 'Quality guaranteed',
+      cta: 'Explore'
+    },
+    {
+      url: '/images/placeholder2.jpg',
+      title: 'Great Deals',
+      subtitle: 'Save on your favorites',
+      cta: 'View Offers'
+    },
   ];
 
   useEffect(() => {
@@ -71,74 +66,254 @@ const Home = () => {
     fetchProducts();
   }, []);
 
-  return (
-    <div
-      className="container mx-auto font-['Poppins'] bg-gray-100 text-gray-800"
-      style={{ paddingBottom: '100px' }}
-    >
-      <div className="py-36 md:py-48">
-        {/* Layout with Sidebar and Main Content */}
-        <div className="flex flex-col md:flex-row">
-          {/* Sidebar only visible on larger screens */}
-          <aside
-            className="md:h-full md:w-1/4 p-4 hidden md:block"
-            style={{ position: 'sticky', top: '0px' }}
-          >
-            <h2 className="text-xl font-bold mb-4">Categories</h2>
-            <ul className="space-y-2">
-              {categories.map((category, index) => (
-                <li key={index}>
-                  <a href={`/category/${category}`} className="text-gray-700 hover:text-yellow-500 text-sm">
-                    {category}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </aside>
+  const filteredProducts = selectedCategory === 'All' 
+    ? featuredProducts 
+    : featuredProducts.filter(product => 
+        product.category?.toLowerCase().includes(selectedCategory.toLowerCase())
+      );
 
-          {/* Main Content */}
-          <main className="flex-1 md:w-3/4">
-            {/* Slider Section */}
-            <div className="mb-8 mx-auto rounded-lg overflow-hidden" style={{ maxWidth: '90%' }}>
+  return (
+    <div className="min-h-screen bg-backgroundLight">
+      {/* Adjust top padding to account for new navbar height */}
+      <div className="pt-32 md:pt-36 pb-28 md:pb-8">
+        
+        {/* Hero Slider Section */}
+        <motion.div 
+          className="mb-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.6 }}
+        >
+          <div className="container mx-auto px-4">
+            <div className="rounded-2xl overflow-hidden shadow-medium">
               <Swiper
-                modules={[Pagination, Autoplay]}
-                pagination={{ clickable: true }}
-                autoplay={{ delay: 3000 }}
+                modules={[Pagination, Autoplay, Navigation]}
+                pagination={{ 
+                  clickable: true,
+                  bulletClass: 'swiper-pagination-bullet !bg-white/60',
+                  bulletActiveClass: 'swiper-pagination-bullet-active !bg-white'
+                }}
+                navigation={true}
+                autoplay={{ delay: 4000, disableOnInteraction: false }}
                 loop={true}
-                className="rounded-lg"
+                className="hero-slider"
               >
-                {sliderImages.map((image, index) => (
+                {sliderImages.map((slide, index) => (
                   <SwiperSlide key={index}>
-                    <img
-                      src={image}
-                      alt={`Slider ${index + 1}`}
-                      className="w-full object-cover"
-                      style={{ height: '40vw', maxHeight: '400px', minHeight: '250px' }}
-                    />
+                    <div className="relative h-48 md:h-80 lg:h-96">
+                      <img
+                        src={slide.url}
+                        alt={slide.title}
+                        className="w-full h-full object-cover"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-black/20 flex items-center">
+                        <div className="container mx-auto px-6 md:px-12">
+                          <motion.div
+                            className="max-w-lg text-white"
+                            initial={{ x: -50, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            transition={{ delay: 0.3, duration: 0.6 }}
+                          >
+                            <h1 className="text-2xl md:text-4xl lg:text-5xl font-bold mb-2 md:mb-4">
+                              {slide.title}
+                            </h1>
+                            <p className="text-sm md:text-lg mb-4 md:mb-6 text-white/90">
+                              {slide.subtitle}
+                            </p>
+                            <motion.button
+                              className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-xl font-semibold transition-colors shadow-soft"
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              {slide.cta}
+                            </motion.button>
+                          </motion.div>
+                        </div>
+                      </div>
+                    </div>
                   </SwiperSlide>
                 ))}
               </Swiper>
             </div>
+          </div>
+        </motion.div>
 
-            {/* Featured Products Section */}
-            <div className="my-8 px-4 md:px-12">
-              <h2 className="text-xl font-bold mb-6 text-gray-800 font-roboto-slab">Featured Products</h2>
-              {loading ? (
-                <div className="text-center">
-                  <p className="text-yellow-500 font-medium">Loading products...</p>
-                </div>
-              ) : error ? (
-                <p className="text-red-500">Failed to fetch products. Please reload the page again.</p>
-              ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6">
-                  {featuredProducts.map((product) => (
-                    <ProductCard key={product._id} product={product} />
-                  ))}
-                </div>
-              )}
+        {/* Categories Section */}
+        <motion.div 
+          className="mb-8"
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2, duration: 0.6 }}
+        >
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl md:text-2xl font-bold text-secondary-800 flex items-center">
+                <FaTags className="mr-3 text-primary-500" />
+                Shop by Category
+              </h2>
             </div>
-          </main>
-        </div>
+            
+            {/* Category Chips - Horizontal Scroll */}
+            <div className="flex space-x-3 overflow-x-auto pb-4 scrollbar-hide">
+              {categories.map((category, index) => {
+                const IconComponent = category.icon;
+                const isActive = selectedCategory === category.name;
+                
+                return (
+                  <motion.button
+                    key={category.name}
+                    onClick={() => setSelectedCategory(category.name)}
+                    className={`flex items-center space-x-2 px-4 py-3 rounded-xl font-medium whitespace-nowrap transition-all ${
+                      isActive
+                        ? 'bg-primary-500 text-white shadow-medium'
+                        : 'bg-white text-secondary-700 hover:bg-primary-50 border border-secondary-200'
+                    }`}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <IconComponent className="text-sm" />
+                    <span className="text-sm">{category.name}</span>
+                  </motion.button>
+                );
+              })}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Featured Products Section */}
+        <motion.div 
+          className="mb-8"
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
+        >
+          <div className="container mx-auto px-4">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl md:text-2xl font-bold text-secondary-800 flex items-center">
+                <FaFire className="mr-3 text-accent-500" />
+                {selectedCategory === 'All' ? 'Featured Products' : `${selectedCategory} Products`}
+              </h2>
+              <Link 
+                to="/products" 
+                className="text-primary-600 hover:text-primary-700 font-medium flex items-center text-sm"
+              >
+                View All <FaChevronRight className="ml-1 text-xs" />
+              </Link>
+            </div>
+
+            {/* Loading State */}
+            {loading && (
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
+                {[...Array(8)].map((_, index) => (
+                  <div key={index} className="animate-pulse">
+                    <div className="bg-secondary-200 rounded-2xl aspect-square mb-4"></div>
+                    <div className="h-4 bg-secondary-200 rounded mb-2"></div>
+                    <div className="h-4 bg-secondary-200 rounded w-3/4"></div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Error State */}
+            {error && (
+              <motion.div 
+                className="text-center py-12"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                <div className="text-error text-lg mb-4">Failed to fetch products</div>
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-xl font-medium transition-colors"
+                >
+                  Try Again
+                </button>
+              </motion.div>
+            )}
+
+            {/* Products Grid */}
+            {!loading && !error && (
+              <AnimatePresence mode="wait">
+                <motion.div 
+                  key={selectedCategory}
+                  className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {filteredProducts.length > 0 ? (
+                    filteredProducts.map((product, index) => (
+                      <motion.div
+                        key={product._id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05, duration: 0.3 }}
+                      >
+                        <ProductCard product={product} />
+                      </motion.div>
+                    ))
+                  ) : (
+                    <motion.div 
+                      className="col-span-full text-center py-12"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                    >
+                      <div className="text-secondary-500 text-lg mb-4">
+                        No products found in {selectedCategory}
+                      </div>
+                      <button 
+                        onClick={() => setSelectedCategory('All')}
+                        className="text-primary-600 hover:text-primary-700 font-medium"
+                      >
+                        View All Products
+                      </button>
+                    </motion.div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Quick Stats or Features Section */}
+        <motion.div 
+          className="bg-white py-8"
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.6, duration: 0.6 }}
+        >
+          <div className="container mx-auto px-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[
+                { icon: FaShoppingBag, title: '1000+', subtitle: 'Products' },
+                { icon: FaTags, title: '50+', subtitle: 'Categories' },
+                { icon: FaFire, title: '24/7', subtitle: 'Support' },
+                { icon: FaChevronRight, title: 'Fast', subtitle: 'Delivery' },
+              ].map((stat, index) => {
+                const IconComponent = stat.icon;
+                return (
+                  <motion.div
+                    key={index}
+                    className="text-center p-4"
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ delay: 0.7 + index * 0.1 }}
+                  >
+                    <div className="w-12 h-12 bg-primary-100 rounded-xl flex items-center justify-center mx-auto mb-3">
+                      <IconComponent className="text-primary-600 text-lg" />
+                    </div>
+                    <div className="text-lg font-bold text-secondary-800">{stat.title}</div>
+                    <div className="text-sm text-secondary-500">{stat.subtitle}</div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </div>
+        </motion.div>
       </div>
     </div>
   );

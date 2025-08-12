@@ -1,289 +1,186 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { FaUser, FaWhatsapp, FaLifeRing, FaList, FaShoppingCart } from 'react-icons/fa';
-import { AuthContext } from '../context/AuthContext';
-import { CartContext } from '../context/CartContext';
+import { motion } from 'framer-motion';
+import { 
+  FaEnvelope, 
+  FaPhone, 
+  FaMapMarkerAlt, 
+  FaFacebook, 
+  FaTwitter, 
+  FaInstagram, 
+  FaWhatsapp,
+  FaHeart
+} from 'react-icons/fa';
 
 const Footer = () => {
-  const { user, logout } = useContext(AuthContext);
-  const { cart } = useContext(CartContext);
-  const [accountDropdownOpen, setAccountDropdownOpen] = useState(false);
-  const [supportDropdownOpen, setSupportDropdownOpen] = useState(false);
-  const [categoriesOpen, setCategoriesOpen] = useState(false);
-
-  const ADMIN_ID = '674e4b8c22fc2df1f90d95ae'; // Replace with your Admin ID
-
-  const categories = [
-    'Airtime',
-    'Animal Feeds',
-    'Animal Health',
-    'Baby Hygiene',
-    'Bakery',
-    'Beverages',
-    'Cereals & Ext.',
-    'Cigarettes',
-    'Confectionery',
-    'Display Dept',
-    'Farm Inputs',
-    'Fats & Oils',
-    'Flour & Rice',
-    'Food Additives',
-    'Groceries',
-    'Hardware',
-    'Household',
-    'Lighters',
-    'Lightings',
-    'Medicine',
-    'Milk',
-    'Packaging',
-    'Personal Care',
-    'Spreads',
-    'Stationery',
-    'Warehouse',
-    'Wholesale',
+  const quickLinks = [
+    { name: 'About Us', path: '/about' },
+    { name: 'Contact', path: '/contact' },
+    { name: 'Privacy Policy', path: '/privacy' },
+    { name: 'Terms of Service', path: '/terms' },
   ];
 
-  const toggleAccountDropdown = () => {
-    setAccountDropdownOpen((prev) => !prev);
-    setSupportDropdownOpen(false);
-  };
+  const categories = [
+    'Groceries',
+    'Beverages', 
+    'Personal Care',
+    'Household',
+    'Medicine',
+    'Hardware',
+  ];
 
-  const toggleSupportDropdown = () => {
-    setSupportDropdownOpen((prev) => !prev);
-    setAccountDropdownOpen(false);
-  };
-
-  const toggleCategories = () => {
-    setCategoriesOpen((prev) => !prev);
-    setAccountDropdownOpen(false);
-    setSupportDropdownOpen(false);
-  };
-
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (categoriesOpen && !event.target.closest('#categoriesPanel')) {
-        setCategoriesOpen(false);
-      }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [categoriesOpen]);
+  const socialLinks = [
+    { icon: FaFacebook, href: '#', label: 'Facebook', color: 'hover:text-blue-600' },
+    { icon: FaTwitter, href: '#', label: 'Twitter', color: 'hover:text-blue-400' },
+    { icon: FaInstagram, href: '#', label: 'Instagram', color: 'hover:text-pink-600' },
+    { icon: FaWhatsapp, href: 'https://wa.me/254724526080', label: 'WhatsApp', color: 'hover:text-green-600' },
+  ];
 
   return (
-    <footer className="bg-gray-300 text-gray-900 py-6 fixed bottom-0 w-full md:relative z-30">
-      {/* Desktop Footer */}
-      <div className="container mx-auto font-['Poppins'] text-center hidden md:block">
-        <p className="text-gray-600">
-          &copy; 2024 Gatangu Enterprises. All rights reserved.
-        </p>
-      </div>
-
-      {/* Mobile Footer Navigation */}
-      <div className="flex justify-around font-['Poppins'] md:hidden bg-gray-200 text-gray-800 py-4">
-        {/* Logo */}
-        <Link
-          to="/"
-          className="flex flex-col items-center text-sm hover:text-blue-600 transition-all"
-          aria-label="Home"
-        >
-          <img
-            src="/images/logo.jpg"
-            alt="Logo"
-            className="w-10 h-10 mb-1 rounded-lg border border-gray-300"
-          />
-          <span></span>
-        </Link>
-
-        {/* Categories */}
-        <div className="relative flex flex-col items-center text-sm">
-          <button
-            onClick={toggleCategories}
-            className="hover:text-blue-600 transition-all"
-            aria-expanded={categoriesOpen}
-            aria-label="Categories"
+    <footer className="bg-secondary-800 text-white hidden md:block">
+      <div className="container mx-auto px-4 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          
+          {/* Company Info */}
+          <motion.div 
+            className="space-y-4"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
           >
-            <FaList className="text-lg mb-1" />
-            <span>Categories</span>
-          </button>
-        </div>
-
-        {/* Cart */}
-        <div className="relative flex flex-col items-center text-sm">
-          <Link to="/cart" className="hover:text-blue-600 transition-all">
-            <FaShoppingCart className="text-lg mb-1" />
-            <span>Cart</span>
-            {cart.length > 0 && (
-              <span className="absolute top-0 right-0 bg-primary text-white rounded-full px-2 text-xs font-bold -translate-y-2 translate-x-4">
-                {cart.length}
-              </span>
-            )}
-          </Link>
-        </div>
-
-        {/* Account */}
-        <div className="relative flex flex-col items-center text-sm">
-          <button
-            onClick={toggleAccountDropdown}
-            className="hover:text-blue-600 transition-all"
-            aria-expanded={accountDropdownOpen}
-            aria-label="Account Menu"
-          >
-            <FaUser className="text-lg mb-1" />
-            <span>{user ? user.username : 'Account'}</span>
-          </button>
-          {accountDropdownOpen && (
-            <div
-              id="accountDropdown"
-              className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-white text-gray-900 rounded-md shadow-lg w-40 z-40"
-            >
-              <ul className="py-2">
-                {user ? (
-                  <>
-                    <li>
-                      <Link
-                        to="/profile"
-                        className="block px-4 py-2 hover:bg-gray-200"
-                        onClick={() => setAccountDropdownOpen(false)}
-                      >
-                        Profile
-                      </Link>
-                    </li>
-                    {user.id === ADMIN_ID && (
-                      <li>
-                        <Link
-                          to="/admin-panel"
-                          className="block px-4 py-2 hover:bg-gray-200"
-                          onClick={() => setAccountDropdownOpen(false)}
-                        >
-                          Admin Panel
-                        </Link>
-                      </li>
-                    )}
-                    <li>
-                      <button
-                        onClick={() => {
-                          logout();
-                          setAccountDropdownOpen(false);
-                        }}
-                        className="block w-full text-left px-4 py-2 hover:bg-gray-200"
-                      >
-                        Logout
-                      </button>
-                    </li>
-                  </>
-                ) : (
-                  <>
-                    <li>
-                      <Link
-                        to="/login"
-                        className="block px-4 py-2 hover:bg-gray-200"
-                        onClick={() => setAccountDropdownOpen(false)}
-                      >
-                        Sign In
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        to="/register"
-                        className="block px-4 py-2 hover:bg-gray-200"
-                        onClick={() => setAccountDropdownOpen(false)}
-                      >
-                        Register
-                      </Link>
-                    </li>
-                  </>
-                )}
-              </ul>
+            <div className="flex items-center space-x-3">
+              <img
+                src="/images/logo.jpg"
+                alt="Gatangu Logo"
+                className="w-12 h-12 rounded-lg object-cover"
+              />
+              <div>
+                <h3 className="text-xl font-bold">Gatangu</h3>
+                <p className="text-secondary-300 text-sm">Enterprise</p>
+              </div>
             </div>
-          )}
-        </div>
-
-        {/* Support */}
-        <div className="relative flex flex-col items-center text-sm">
-          <button
-            onClick={toggleSupportDropdown}
-            className="hover:text-blue-600 transition-all"
-            aria-expanded={supportDropdownOpen}
-            aria-label="Support Menu"
-          >
-            <FaLifeRing className="text-lg mb-1" />
-            <span>Support</span>
-          </button>
-          {supportDropdownOpen && (
-            <div
-              id="supportDropdown"
-              className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-white text-gray-900 rounded-md shadow-lg w-40 z-40"
-            >
-              <ul className="py-2">
-                <li>
-                  <a
-                    href="https://wa.me/254724526080"
+            <p className="text-secondary-300 text-sm leading-relaxed">
+              Your trusted local store providing quality products for your daily needs. 
+              Fresh, reliable, and always at your service.
+            </p>
+            
+            {/* Social Links */}
+            <div className="flex space-x-4">
+              {socialLinks.map((social, index) => {
+                const IconComponent = social.icon;
+                return (
+                  <motion.a
+                    key={index}
+                    href={social.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="block px-4 py-2 hover:bg-gray-200"
+                    className={`w-10 h-10 bg-secondary-700 rounded-full flex items-center justify-center text-secondary-300 ${social.color} transition-colors`}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                    aria-label={social.label}
                   >
-                    Help
-                  </a>
-                </li>
-                <li>
-                  <a
-                    href="https://wa.me/254708328905"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="block px-4 py-2 hover:bg-gray-200"
-                  >
-                    Developer
-                  </a>
-                </li>
-              </ul>
+                    <IconComponent />
+                  </motion.a>
+                );
+              })}
             </div>
-          )}
-        </div>
-      </div>
+          </motion.div>
 
-      {/* Categories Side Panel */}
-      {categoriesOpen && (
-        <div
-          id="categoriesPanel"
-          className="fixed inset-0 bg-white shadow-lg z-50 overflow-y-auto transition-transform duration-300 ease-in-out pt-32 md:max-w-sm"
-        >
-          <div className="p-6 relative flex flex-col h-full">
-            {/* Top Close Button */}
-            <button
-              onClick={() => setCategoriesOpen(false)}
-              className="absolute top-4 right-4 text-black text-2xl hover:text-red-500 transition-all"
-              aria-label="Close Categories Panel"
-            >
-              &times;
-            </button>
+          {/* Quick Links */}
+          <motion.div 
+            className="space-y-4"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
+            <h4 className="text-lg font-semibold">Quick Links</h4>
+            <ul className="space-y-2">
+              {quickLinks.map((link, index) => (
+                <li key={index}>
+                  <Link
+                    to={link.path}
+                    className="text-secondary-300 hover:text-primary-400 transition-colors text-sm"
+                  >
+                    {link.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
 
-            <h2 className="text-xl font-bold mb-4">Categories</h2>
-            <ul className="space-y-2 flex-grow">
+          {/* Categories */}
+          <motion.div 
+            className="space-y-4"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <h4 className="text-lg font-semibold">Categories</h4>
+            <ul className="space-y-2">
               {categories.map((category, index) => (
                 <li key={index}>
                   <Link
                     to={`/category/${category}`}
-                    className="block px-4 py-2 text-gray-800 hover:bg-gray-200 rounded"
-                    onClick={() => setCategoriesOpen(false)}
+                    className="text-secondary-300 hover:text-primary-400 transition-colors text-sm"
                   >
                     {category}
                   </Link>
                 </li>
               ))}
             </ul>
+          </motion.div>
 
-            {/* Bottom Cancel Button */}
-            <button
-              onClick={() => setCategoriesOpen(false)}
-              className="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition-all"
-              aria-label="Cancel"
-            >
-              Cancel
-            </button>
-          </div>
+          {/* Contact Info */}
+          <motion.div 
+            className="space-y-4"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
+            <h4 className="text-lg font-semibold">Contact Us</h4>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center space-x-3">
+                <FaMapMarkerAlt className="text-primary-400 flex-shrink-0" />
+                <span className="text-secondary-300">Gatangu Market, Kenya</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <FaPhone className="text-primary-400 flex-shrink-0" />
+                <span className="text-secondary-300">0724-526-080</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <FaPhone className="text-primary-400 flex-shrink-0" />
+                <span className="text-secondary-300">0722-260-860</span>
+              </div>
+              <div className="flex items-center space-x-3">
+                <FaEnvelope className="text-primary-400 flex-shrink-0" />
+                <span className="text-secondary-300">info@gatangu.co.ke</span>
+              </div>
+            </div>
+          </motion.div>
         </div>
-      )}
+
+        {/* Bottom Bar */}
+        <motion.div 
+          className="border-t border-secondary-700 mt-8 pt-6 flex flex-col md:flex-row justify-between items-center"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6, delay: 0.4 }}
+        >
+          <p className="text-secondary-400 text-sm">
+            &copy; 2024 Gatangu Enterprises. All rights reserved.
+          </p>
+          <div className="flex items-center space-x-1 text-secondary-400 text-sm mt-2 md:mt-0">
+            <span>Made with</span>
+            <FaHeart className="text-red-500 text-xs" />
+            <span>in Kenya</span>
+          </div>
+        </motion.div>
+      </div>
     </footer>
   );
 };

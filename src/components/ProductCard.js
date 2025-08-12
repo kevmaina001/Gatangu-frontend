@@ -1,60 +1,169 @@
-import React from 'react';
+import React, { useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { FaShoppingCart, FaHeart, FaEye } from 'react-icons/fa';
+import { CartContext } from '../context/CartContext';
+import { getFinalImageURL, handleImageError } from '../utils/imageUtils';
 
 const ProductCard = ({ product }) => {
-  // Get the final image URL
-  const getFinalImageURL = (imagePath) => {
-    if (!imagePath) {
-      console.warn('Product image is missing for:', product.name);
-      return '/fallback.jpg'; // Fallback image
-    }
-
-    // Return external or Cloudinary URLs directly
-    if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
-      return imagePath;
-    }
-
-    // Handle unexpected local paths (shouldn't occur with Cloudinary)
-    console.warn('Unexpected local image path detected:', imagePath);
-    return `/fallback.jpg`;
-  };
+  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageError, setImageError] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const { addToCart } = useContext(CartContext);
 
   const finalImageURL = getFinalImageURL(product.image);
 
-  console.log('Rendering Product:', {
-    name: product.name,
-    image: product.image,
-    finalImageURL,
-  });
+  const handleAddToCart = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addToCart(product);
+  };
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('en-KE', {
+      style: 'currency',
+      currency: 'KES',
+      minimumFractionDigits: 0,
+    }).format(price);
+  };
 
   return (
-    <Link
-      to={`/products/${product._id}`}
-      className="block border border-gray-200 p-4 hover:shadow-lg transition-shadow bg-white w-11/12 mx-auto"
+    <motion.div
+      className="group relative"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Product Image */}
-      <div className="w-full h-48 flex items-center justify-center overflow-hidden mb-4 bg-gray-100">
-        <img
-          src={finalImageURL}
-          alt={product.name}
-          className="object-cover max-h-full max-w-full"
-          onError={(e) => {
-            console.error('Image failed to load:', finalImageURL);
-            e.target.src = '/fallback.jpg'; // Fallback image
-          }}
-        />
-      </div>
+      <Link
+        to={`/products/${product._id}`}
+        className="block bg-white rounded-2xl border border-secondary-100 overflow-hidden hover:shadow-medium transition-all duration-300 group-hover:-translate-y-1"
+      >
+        {/* Product Image */}
+        <div className="relative aspect-square overflow-hidden bg-secondary-50">
+          {!imageLoaded && !imageError && (
+            <div className="absolute inset-0 flex items-center justify-center">
+              <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+            </div>
+          )}
+          
+          <motion.img
+            src={finalImageURL}
+            alt={product.name}
+            className={`w-full h-full object-cover transition-all duration-500 ${
+              imageLoaded ? 'opacity-100' : 'opacity-0'
+            } group-hover:scale-110`}
+            onLoad={() => setImageLoaded(true)}
+            onError={(e) => {
+              setImageError(true);
+              setImageLoaded(true);
+              handleImageError(e);
+            }}
+          />
+          
+          {/* Overlay Actions */}
+          <motion.div
+            className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+            initial={false}
+            animate={{ opacity: isHovered ? 1 : 0 }}
+          >
+            <div className="flex space-x-2">
+              <motion.button
+                onClick={handleAddToCart}
+                className="p-3 bg-white/90 backdrop-blur-sm rounded-full hover:bg-primary-500 hover:text-white transition-colors shadow-soft"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <FaShoppingCart className="text-sm" />
+              </motion.button>
+              
+              <motion.button
+                className="p-3 bg-white/90 backdrop-blur-sm rounded-full hover:bg-accent-500 hover:text-white transition-colors shadow-soft"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <FaHeart className="text-sm" />
+              </motion.button>
+              
+              <motion.div
+                className="p-3 bg-white/90 backdrop-blur-sm rounded-full hover:bg-secondary-800 hover:text-white transition-colors shadow-soft"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <FaEye className="text-sm" />
+              </motion.div>
+            </div>
+          </motion.div>
 
-      {/* Product Name */}
-      <h3 className="text-gray-800 mb-1 font-medium text-center text-lg">
-        {product.name}
-      </h3>
+          {/* Sale Badge */}
+          {product.originalPrice && product.originalPrice > product.price && (
+            <motion.div
+              className="absolute top-3 left-3 bg-accent-500 text-white px-2 py-1 rounded-lg text-xs font-bold"
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              SALE
+            </motion.div>
+          )}
+        </div>
 
-      {/* Product Price */}
-      <p className="text-gray-600 text-center text-sm">
-        Ksh. {product.price}
-      </p>
-    </Link>
+        {/* Product Info */}
+        <div className="p-4">
+          {/* Product Name */}
+          <h3 className="text-secondary-800 font-medium text-sm md:text-base line-clamp-2 mb-2 group-hover:text-primary-600 transition-colors">
+            {product.name}
+          </h3>
+
+          {/* Category */}
+          {product.category && (
+            <p className="text-secondary-500 text-xs mb-2 capitalize">
+              {product.category}
+            </p>
+          )}
+
+          {/* Price */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <span className="text-primary-600 font-bold text-lg">
+                {formatPrice(product.price)}
+              </span>
+              {product.originalPrice && product.originalPrice > product.price && (
+                <span className="text-secondary-400 text-sm line-through">
+                  {formatPrice(product.originalPrice)}
+                </span>
+              )}
+            </div>
+
+            {/* Quick Add Button */}
+            <motion.button
+              onClick={handleAddToCart}
+              className="md:hidden p-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <FaShoppingCart className="text-sm" />
+            </motion.button>
+          </div>
+
+          {/* Stock Status */}
+          {product.stock !== undefined && (
+            <div className="mt-2">
+              {product.stock > 0 ? (
+                <span className="text-success text-xs font-medium">
+                  In Stock ({product.stock} left)
+                </span>
+              ) : (
+                <span className="text-error text-xs font-medium">
+                  Out of Stock
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      </Link>
+    </motion.div>
   );
 };
 

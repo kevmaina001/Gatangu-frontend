@@ -1,10 +1,21 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  FaShoppingCart, 
+  FaTrash, 
+  FaPlus, 
+  FaMinus, 
+  FaArrowLeft,
+  FaLock,
+  FaUserPlus,
+  FaCheckCircle
+} from 'react-icons/fa';
 import { useCart } from '../context/CartContext';
 import { Link, useNavigate } from 'react-router-dom';
-import PaystackPayment from '../components/PaystackPayment';
 import fetchWithAuth from '../utils/fetchWithAuth';
 import { useAuth } from '../context/AuthContext';
 import { jwtDecode } from 'jwt-decode';
+import { getFinalImageURL, handleImageError } from '../utils/imageUtils';
 
 const CartPage = () => {
   const { cart, removeFromCart, updateQuantity, clearCart } = useCart();
@@ -17,7 +28,16 @@ const CartPage = () => {
   const totalAmount = cart.reduce((total, item) => total + item.price * item.quantity, 0);
 
   const handleQuantityChange = (productId, newQuantity) => {
-    updateQuantity(productId, parseInt(newQuantity, 10));
+    const quantity = Math.max(1, parseInt(newQuantity, 10));
+    updateQuantity(productId, quantity);
+  };
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat('en-KE', {
+      style: 'currency',
+      currency: 'KES',
+      minimumFractionDigits: 0,
+    }).format(price);
   };
 
   const handleInputChange = (e) => {
@@ -46,27 +66,19 @@ const CartPage = () => {
     }
   };
 
-  const handlePaymentSuccess = async (reference) => {
-    if (!validateTokenBeforePayment()) return; // Re-validate before submitting
-    await submitOrder(reference.reference);
-  };
-
-  const handlePlaceOrder = () => {
-    if (!user) {
-      navigate('/register', { state: { from: '/cart' } });
-    }
-  };
-
-  const submitOrder = async (paymentReference) => {
+  const handleWhatsAppCheckout = async () => {
     if (!formData.name || !formData.email || !formData.location) {
-      alert('Please fill out all required fields before placing your order.');
+      alert('Please fill out all required fields before proceeding to checkout.');
       return;
     }
 
+    if (!validateTokenBeforePayment()) return;
+
     setLoading(true);
     try {
+      // Save order to backend first
       const response = await fetchWithAuth(
-        `${API_URL}/orders`,
+        `${API_URL.replace('/api', '')}/api/orders`,
         token,
         logout,
         {
@@ -78,171 +90,380 @@ const CartPage = () => {
             ...formData,
             cart,
             totalAmount,
-            paymentReference,
+            paymentMethod: 'WhatsApp',
+            paymentReference: `WA-${Date.now()}`, // Generate WhatsApp reference
           }),
         }
       );
 
       const data = await response.json();
-      console.log('API Response:', data);
 
       if (response.ok) {
-        alert('Order placed successfully! Thank you for shopping with us.');
-        sendOrderDetailsToWhatsApp();
-        clearCart();
+        // Send order details to WhatsApp
+        sendOrderDetailsToWhatsApp(data._id);
       } else {
-        alert(`Failed to place the order: ${data.message || 'Unknown error'}`);
+        alert(`Failed to process order: ${data.message || 'Unknown error'}`);
       }
     } catch (error) {
-      console.error('Error submitting order:', error.message);
-      alert('An error occurred while placing your order.');
+      console.error('Error processing order:', error.message);
+      alert('An error occurred while processing your order.');
     } finally {
       setLoading(false);
     }
   };
 
-  const sendOrderDetailsToWhatsApp = () => {
+  const handlePlaceOrder = () => {
+    if (!user) {
+      navigate('/register', { state: { from: '/cart' } });
+    }
+  };
+
+
+  const sendOrderDetailsToWhatsApp = (orderId) => {
     const formattedCart = cart
-      .map((item) => `${item.name} - Qty: ${item.quantity}, Price: Ksh. ${item.price}`)
-      .join('%0A');
+      .map((item, index) => `${index + 1}. ${item.name} - Qty: ${item.quantity} - ${formatPrice(item.price)} each`)
+      .join('\n');
 
-    const message = `
-      *New Order Placed*%0A
-      *Name:* ${formData.name}%0A
-      *Email:* ${formData.email}%0A
-      *Location:* ${formData.location}%0A
-      *Note:* ${formData.note || 'N/A'}%0A
-      *Total Amount:* Ksh. ${totalAmount}%0A%0A
-      *Order Items:*%0A${formattedCart}
-    `;
+    const orderRef = orderId ? orderId.slice(-8).toUpperCase() : 'N/A';
 
-    const whatsappURL = `https://wa.me/254708328905?text=${encodeURI(message)}`;
+    const message = `*GATANGU ENTERPRISE*
+*NEW ORDER REQUEST*
+========================
+
+*ORDER ID: #${orderRef}*
+
+*CUSTOMER INFORMATION*
+Name: ${formData.name}
+Email: ${formData.email}
+Location: ${formData.location}
+Instructions: ${formData.note || 'None'}
+
+*ORDER DETAILS*
+${formattedCart}
+
+*TOTAL: ${formatPrice(totalAmount)}*
+========================
+
+Please confirm this order and provide payment instructions.
+
+You can track this order in your profile on our website.
+
+Thank you for choosing Gatangu Enterprise.`;
+
+    const whatsappURL = `https://wa.me/254708328905?text=${encodeURIComponent(message)}`;
     window.open(whatsappURL, '_blank');
+    
+    // Clear cart after sending to WhatsApp
+    clearCart();
+    alert('Order saved and sent to WhatsApp! You can track this order in your profile.');
   };
 
   return (
-    <div className="container mx-auto pt-[10rem] pb-40 px-4">
-      <h2 className="text-5xl font-playfair mb-8 text-center text-gray-800 tracking-wide">
-        Shopping Cart
-      </h2>
-
-      {cart.length > 0 ? (
-        <>
-          <ul className="space-y-6">
-            {cart.map((item) => (
-              <li key={item._id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-white rounded-lg shadow-md p-4 hover:shadow-lg transition-shadow">
-                <div className="flex items-center space-x-4 mb-4 sm:mb-0 w-full sm:w-auto">
-                  <div className="flex-1">
-                    <h4 className="font-semibold text-lg text-gray-800">{item.name}</h4>
-                    <p className="text-sm text-gray-600">Price: Ksh. {item.price}</p>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-4 w-full sm:w-auto">
-                  <div className="flex items-center border border-gray-300 rounded-md">
-                    <button
-                      onClick={() => handleQuantityChange(item._id, item.quantity - 1)}
-                      disabled={item.quantity <= 1}
-                      className="px-2 py-1 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-l-md"
-                    >
-                      -
-                    </button>
-                    <input
-                      type="number"
-                      value={item.quantity}
-                      min="1"
-                      onChange={(e) => handleQuantityChange(item._id, e.target.value)}
-                      className="w-12 text-center border-0 focus:ring-0"
-                    />
-                    <button
-                      onClick={() => handleQuantityChange(item._id, item.quantity + 1)}
-                      className="px-2 py-1 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-r-md"
-                    >
-                      +
-                    </button>
-                  </div>
-                  <button
-                    onClick={() => removeFromCart(item._id)}
-                    className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm"
-                  >
-                    Remove
-                  </button>
-                </div>
-                <p className="font-bold text-gray-700 mt-2 sm:mt-0">
-                  Ksh. {item.price * item.quantity}
-                </p>
-              </li>
-            ))}
-          </ul>
-
-          <div className="bg-white rounded-lg shadow-md p-6 mt-10 max-w-lg mx-auto">
-            <h3 className="text-2xl font-semibold mb-4 text-gray-800">Checkout Details</h3>
-            {!user ? (
-              <button
-                onClick={handlePlaceOrder}
-                className="w-full bg-yellow-500 text-white py-2 rounded-md hover:bg-yellow-600 transition"
-              >
-                Sign Up to Place Order
-              </button>
-            ) : (
-              <>
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Full Name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-300 p-3 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  required
-                />
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Enter Email to receive receipt"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-300 p-3 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  required
-                />
-                <input
-                  type="text"
-                  name="location"
-                  placeholder="Location"
-                  value={formData.location}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-300 p-3 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-green-500"
-                  required
-                />
-                <textarea
-                  name="note"
-                  placeholder="Add a note (e.g., delivery instructions)"
-                  value={formData.note}
-                  onChange={handleInputChange}
-                  className="w-full border border-gray-300 p-3 rounded mb-4 focus:outline-none focus:ring-2 focus:ring-green-500"
-                ></textarea>
-
-                <PaystackPayment
-                  amount={totalAmount}
-                  email={formData.email}
-                  onSuccess={handlePaymentSuccess}
-                  onClose={() => console.log('Payment closed')}
-                />
-                {loading && <p className="text-center text-gray-500 mt-4">Placing your order...</p>}
-              </>
-            )}
-          </div>
-        </>
-      ) : (
-        <p className="text-center text-gray-500 animate-fadeIn">
-          Your shopping basket is empty. Don’t miss out on great deals!{' '}
-          <Link
+    <div className="min-h-screen bg-backgroundLight pt-32 pb-28 md:pb-20">
+      <div className="container mx-auto px-4">
+        
+        {/* Header */}
+        <motion.div 
+          className="flex items-center justify-between mb-8"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Link 
             to="/"
-            className="text-green-500 hover:underline hover:text-green-600 transition-colors"
+            className="flex items-center space-x-2 text-secondary-600 hover:text-primary-600 transition-colors"
           >
-            Start shopping now
-          </Link>{' '}
-          at Gatangu Enterprises Dashboard to find amazing products.
-        </p>
-      )}
+            <FaArrowLeft />
+            <span>Continue Shopping</span>
+          </Link>
+          
+          <h1 className="text-2xl md:text-3xl font-bold text-secondary-800 flex items-center">
+            <FaShoppingCart className="mr-3 text-primary-500" />
+            Shopping Cart
+          </h1>
+          
+          <div className="text-sm text-secondary-500">
+            {cart.length} {cart.length === 1 ? 'item' : 'items'}
+          </div>
+        </motion.div>
+
+        <AnimatePresence mode="wait">
+          {cart.length > 0 ? (
+            <motion.div 
+              className="grid grid-cols-1 lg:grid-cols-3 gap-8"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              {/* Cart Items */}
+              <div className="lg:col-span-2 space-y-4">
+                <AnimatePresence>
+                  {cart.map((item, index) => (
+                    <motion.div
+                      key={item._id}
+                      className="bg-white rounded-2xl p-6 shadow-soft border border-secondary-100"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, x: -100 }}
+                      transition={{ delay: index * 0.1 }}
+                      layout
+                    >
+                      <div className="flex flex-col md:flex-row md:items-center space-y-4 md:space-y-0 md:space-x-6">
+                        
+                        {/* Product Image */}
+                        <div className="w-24 h-24 bg-secondary-100 rounded-xl overflow-hidden flex-shrink-0">
+                          <img
+                            src={getFinalImageURL(item.image)}
+                            alt={item.name}
+                            className="w-full h-full object-cover"
+                            onError={handleImageError}
+                          />
+                        </div>
+
+                        {/* Product Info */}
+                        <div className="flex-1 min-w-0">
+                          <h3 className="font-semibold text-secondary-800 text-lg mb-1 truncate">
+                            {item.name}
+                          </h3>
+                          <p className="text-secondary-500 text-sm mb-2">
+                            Unit Price: {formatPrice(item.price)}
+                          </p>
+                          
+                          {/* Mobile Quantity Controls */}
+                          <div className="flex items-center justify-between md:hidden">
+                            <div className="flex items-center border border-secondary-200 rounded-lg overflow-hidden">
+                              <motion.button
+                                onClick={() => handleQuantityChange(item._id, item.quantity - 1)}
+                                disabled={item.quantity <= 1}
+                                className="p-2 hover:bg-secondary-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                whileTap={{ scale: 0.95 }}
+                              >
+                                <FaMinus className="text-xs" />
+                              </motion.button>
+                              <span className="px-4 py-2 font-semibold min-w-[50px] text-center">
+                                {item.quantity}
+                              </span>
+                              <motion.button
+                                onClick={() => handleQuantityChange(item._id, item.quantity + 1)}
+                                className="p-2 hover:bg-secondary-100 transition-colors"
+                                whileTap={{ scale: 0.95 }}
+                              >
+                                <FaPlus className="text-xs" />
+                              </motion.button>
+                            </div>
+                            
+                            <div className="flex items-center space-x-3">
+                              <span className="font-bold text-primary-600">
+                                {formatPrice(item.price * item.quantity)}
+                              </span>
+                              <motion.button
+                                onClick={() => removeFromCart(item._id)}
+                                className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                              >
+                                <FaTrash className="text-sm" />
+                              </motion.button>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Desktop Quantity Controls */}
+                        <div className="hidden md:flex items-center space-x-6">
+                          <div className="flex items-center border border-secondary-200 rounded-lg overflow-hidden">
+                            <motion.button
+                              onClick={() => handleQuantityChange(item._id, item.quantity - 1)}
+                              disabled={item.quantity <= 1}
+                              className="p-3 hover:bg-secondary-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              <FaMinus className="text-sm" />
+                            </motion.button>
+                            <span className="px-6 py-3 font-semibold min-w-[60px] text-center">
+                              {item.quantity}
+                            </span>
+                            <motion.button
+                              onClick={() => handleQuantityChange(item._id, item.quantity + 1)}
+                              className="p-3 hover:bg-secondary-100 transition-colors"
+                              whileTap={{ scale: 0.95 }}
+                            >
+                              <FaPlus className="text-sm" />
+                            </motion.button>
+                          </div>
+
+                          <div className="text-right min-w-[120px]">
+                            <div className="font-bold text-lg text-primary-600">
+                              {formatPrice(item.price * item.quantity)}
+                            </div>
+                          </div>
+
+                          <motion.button
+                            onClick={() => removeFromCart(item._id)}
+                            className="p-3 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                            whileHover={{ scale: 1.1 }}
+                            whileTap={{ scale: 0.9 }}
+                          >
+                            <FaTrash />
+                          </motion.button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </div>
+
+              {/* Order Summary */}
+              <motion.div 
+                className="lg:col-span-1"
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <div className="bg-white rounded-2xl p-6 shadow-soft border border-secondary-100 sticky top-36">
+                  <h2 className="text-xl font-bold text-secondary-800 mb-6 flex items-center">
+                    <FaCheckCircle className="mr-2 text-primary-500" />
+                    Order Summary
+                  </h2>
+
+                  {/* Order Details */}
+                  <div className="space-y-4 mb-6">
+                    <div className="flex justify-between text-secondary-600">
+                      <span>Subtotal ({cart.length} items)</span>
+                      <span>{formatPrice(totalAmount)}</span>
+                    </div>
+                    <div className="flex justify-between text-secondary-600">
+                      <span>Delivery Fee</span>
+                      <span className="text-success">Free</span>
+                    </div>
+                    <div className="border-t border-secondary-200 pt-4">
+                      <div className="flex justify-between text-lg font-bold text-secondary-800">
+                        <span>Total</span>
+                        <span className="text-primary-600">{formatPrice(totalAmount)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Checkout Section */}
+                  {!user ? (
+                    <motion.div 
+                      className="space-y-4"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                    >
+                      <div className="text-center p-4 bg-primary-50 rounded-xl">
+                        <FaUserPlus className="mx-auto text-2xl text-primary-600 mb-2" />
+                        <p className="text-secondary-700 mb-4">
+                          Sign up to complete your order
+                        </p>
+                      </div>
+                      <button
+                        onClick={handlePlaceOrder}
+                        className="w-full bg-primary-500 hover:bg-primary-600 text-white py-4 px-6 rounded-xl font-semibold transition-colors flex items-center justify-center space-x-2"
+                      >
+                        <FaUserPlus />
+                        <span>Sign Up to Place Order</span>
+                      </button>
+                    </motion.div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="space-y-4">
+                        <input
+                          type="text"
+                          name="name"
+                          placeholder="Full Name"
+                          value={formData.name}
+                          onChange={handleInputChange}
+                          className="w-full border border-secondary-200 p-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                          required
+                        />
+                        <input
+                          type="email"
+                          name="email"
+                          placeholder="Email for receipt"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          className="w-full border border-secondary-200 p-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                          required
+                        />
+                        <input
+                          type="text"
+                          name="location"
+                          placeholder="Delivery Location"
+                          value={formData.location}
+                          onChange={handleInputChange}
+                          className="w-full border border-secondary-200 p-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
+                          required
+                        />
+                        <textarea
+                          name="note"
+                          placeholder="Delivery instructions (optional)"
+                          value={formData.note}
+                          onChange={handleInputChange}
+                          rows="3"
+                          className="w-full border border-secondary-200 p-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all resize-none"
+                        />
+                      </div>
+
+                      <div className="flex items-center space-x-2 text-sm text-secondary-500 bg-green-50 p-3 rounded-xl">
+                        <span className="text-lg">💬</span>
+                        <span>Complete your order via WhatsApp</span>
+                      </div>
+
+                      <motion.button
+                        onClick={handleWhatsAppCheckout}
+                        disabled={loading}
+                        className="w-full bg-green-500 hover:bg-green-600 disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 px-6 rounded-xl font-semibold transition-colors flex items-center justify-center space-x-3"
+                        whileHover={{ scale: loading ? 1 : 1.02 }}
+                        whileTap={{ scale: loading ? 1 : 0.98 }}
+                      >
+                        {loading ? (
+                          <>
+                            <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                            <span>Processing Order...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-xl">📱</span>
+                            <span>Checkout via WhatsApp</span>
+                          </>
+                        )}
+                      </motion.button>
+                      
+                      <p className="text-xs text-secondary-500 text-center">
+                        Your order details will be sent to WhatsApp where you can complete the payment process
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            </motion.div>
+          ) : (
+            <motion.div 
+              className="text-center py-20"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+            >
+              <div className="w-32 h-32 bg-secondary-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <FaShoppingCart className="text-4xl text-secondary-400" />
+              </div>
+              <h2 className="text-2xl font-bold text-secondary-800 mb-4">
+                Your cart is empty
+              </h2>
+              <p className="text-secondary-500 mb-8 max-w-md mx-auto">
+                Looks like you haven't added anything to your cart yet. 
+                Start shopping to fill it up!
+              </p>
+              <Link
+                to="/"
+                className="inline-flex items-center space-x-2 bg-primary-500 hover:bg-primary-600 text-white px-8 py-4 rounded-xl font-semibold transition-colors"
+              >
+                <FaShoppingCart />
+                <span>Start Shopping</span>
+              </Link>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </div>
   );
 };
