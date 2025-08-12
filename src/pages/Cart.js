@@ -173,9 +173,9 @@ Thank you for choosing Gatangu Enterprise.`;
     clearCart();
     
     if (orderId) {
-      alert(`Order saved and sent to ${whatsappNumbers.length} WhatsApp numbers! You can track this order in your profile.`);
+      alert(`Order saved, kindly proceed to WhatsApp so that you can complete your order. You can track this order in your profile if registered.`);
     } else {
-      alert(`Order sent to ${whatsappNumbers.length} WhatsApp numbers! We will contact you shortly to confirm payment and delivery details.`);
+      alert(`Order sent to Gatangu Enterprises Kamune! We will contact you shortly to confirm payment and delivery details.`);
     }
   };
 

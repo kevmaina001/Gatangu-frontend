@@ -13,7 +13,7 @@ export const whatsappConfig = {
       description: 'Order fulfillment and logistics'
     },
     {
-      number: '254722260860', // Replace with actual third number
+      number: '254724526080', // Replace with actual third number
       name: 'Store Manager',
       description: 'Inventory and store operations'
     }
