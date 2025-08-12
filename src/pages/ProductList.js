@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FaShoppingBag, 
   FaSort, 
@@ -9,9 +9,12 @@ import {
   FaStar,
   FaTag,
   FaFire,
-  FaLeaf
+  FaLeaf,
+  FaFilter,
+  FaTimes
 } from 'react-icons/fa';
 import ProductCard from '../components/ProductCard';
+import VirtualizedProductGrid from '../components/VirtualizedProductGrid';
 import axios from '../services/api';
 import { getFinalImageURL, handleImageError } from '../utils/imageUtils';
 
@@ -24,6 +27,7 @@ const ProductList = () => {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('featured');
   const [viewMode, setViewMode] = useState('grid');
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
   
   const categories = [
     { id: 'all', name: 'All Products', icon: FaShoppingBag, color: 'primary' },
@@ -151,53 +155,99 @@ const ProductList = () => {
           </motion.div>
         </motion.div>
 
-        {/* Search and Filters */}
+        {/* Search Bar - Always Visible */}
         <motion.div
-          className="bg-white rounded-2xl shadow-medium p-6 mb-8"
+          className="bg-white rounded-2xl shadow-medium p-4 mb-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4, duration: 0.6 }}
         >
-          {/* Search Bar */}
-          <div className="relative mb-4 md:mb-6">
-            <FaSearch className="absolute left-3 md:left-4 top-1/2 transform -translate-y-1/2 text-secondary-400" />
+          <div className="relative">
+            <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-secondary-400" />
             <input
               type="text"
               placeholder="Search for products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 md:pl-12 pr-4 py-3 md:py-4 border border-secondary-200 rounded-xl text-secondary-800 placeholder-secondary-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all text-sm md:text-base"
+              className="w-full pl-10 pr-4 py-3 border border-secondary-200 rounded-xl text-secondary-800 placeholder-secondary-400 focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
             />
           </div>
+        </motion.div>
 
-          {/* Category Pills */}
-          <div className="flex flex-wrap gap-2 md:gap-3 mb-4 md:mb-6">
-            {categories.map((category) => {
-              const IconComponent = category.icon;
-              const isSelected = selectedCategory === category.id;
-              return (
-                <motion.button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  className={`flex items-center px-3 md:px-4 py-2 rounded-lg md:rounded-xl font-medium transition-all text-xs md:text-sm ${
-                    isSelected
-                      ? 'bg-primary-500 text-white shadow-medium'
-                      : 'bg-secondary-50 text-secondary-600 hover:bg-secondary-100'
+        {/* Mobile Filter Button & Desktop Filters */}
+        <motion.div
+          className="mb-6"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5, duration: 0.6 }}
+        >
+          {/* Mobile Filter Toggle */}
+          <div className="flex items-center justify-between mb-4 md:hidden">
+            <button
+              onClick={() => setShowMobileFilters(true)}
+              className="flex items-center gap-2 bg-primary-500 text-white px-4 py-2 rounded-lg font-medium"
+            >
+              <FaFilter className="text-sm" />
+              Filters
+            </button>
+            
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-secondary-600">
+                {filteredProducts.length} found
+              </span>
+              <div className="flex items-center bg-white rounded-lg border border-secondary-200 p-1">
+                <button
+                  onClick={() => setViewMode('grid')}
+                  className={`p-2 rounded-md transition-colors ${
+                    viewMode === 'grid'
+                      ? 'bg-primary-500 text-white'
+                      : 'text-secondary-500'
                   }`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
                 >
-                  <IconComponent className="mr-1 md:mr-2 text-xs md:text-sm" />
-                  <span className="hidden sm:inline">{category.name}</span>
-                  <span className="sm:hidden">{category.name.split(' ')[0]}</span>
-                </motion.button>
-              );
-            })}
+                  <FaTh className="text-sm" />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-2 rounded-md transition-colors ${
+                    viewMode === 'list'
+                      ? 'bg-primary-500 text-white'
+                      : 'text-secondary-500'
+                  }`}
+                >
+                  <FaList className="text-sm" />
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* Controls */}
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-            <div className="flex items-center gap-4">
+          {/* Desktop Filters */}
+          <div className="hidden md:block bg-white rounded-2xl shadow-medium p-6">
+            {/* Category Pills */}
+            <div className="flex flex-wrap gap-3 mb-6">
+              {categories.map((category) => {
+                const IconComponent = category.icon;
+                const isSelected = selectedCategory === category.id;
+                return (
+                  <motion.button
+                    key={category.id}
+                    onClick={() => setSelectedCategory(category.id)}
+                    className={`flex items-center px-4 py-2 rounded-xl font-medium transition-all ${
+                      isSelected
+                        ? 'bg-primary-500 text-white shadow-medium'
+                        : 'bg-secondary-50 text-secondary-600 hover:bg-secondary-100'
+                    }`}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <IconComponent className="mr-2" />
+                    {category.name}
+                  </motion.button>
+                );
+              })}
+            </div>
+
+            {/* Controls */}
+            <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <FaSort className="text-secondary-500" />
                 <select
@@ -212,38 +262,150 @@ const ProductList = () => {
                   <option value="newest">Newest First</option>
                 </select>
               </div>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <span className="text-secondary-600 font-medium">
-                {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} found
-              </span>
               
-              <div className="flex items-center bg-secondary-100 rounded-lg p-1">
-                <button
-                  onClick={() => setViewMode('grid')}
-                  className={`p-2 rounded-md transition-colors ${
-                    viewMode === 'grid'
-                      ? 'bg-white text-primary-600 shadow-sm'
-                      : 'text-secondary-500 hover:text-secondary-700'
-                  }`}
-                >
-                  <FaTh className="text-sm" />
-                </button>
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`p-2 rounded-md transition-colors ${
-                    viewMode === 'list'
-                      ? 'bg-white text-primary-600 shadow-sm'
-                      : 'text-secondary-500 hover:text-secondary-700'
-                  }`}
-                >
-                  <FaList className="text-sm" />
-                </button>
+              <div className="flex items-center gap-4">
+                <span className="text-secondary-600 font-medium">
+                  {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} found
+                </span>
+                
+                <div className="flex items-center bg-secondary-100 rounded-lg p-1">
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    className={`p-2 rounded-md transition-colors ${
+                      viewMode === 'grid'
+                        ? 'bg-white text-primary-600 shadow-sm'
+                        : 'text-secondary-500 hover:text-secondary-700'
+                    }`}
+                  >
+                    <FaTh className="text-sm" />
+                  </button>
+                  <button
+                    onClick={() => setViewMode('list')}
+                    className={`p-2 rounded-md transition-colors ${
+                      viewMode === 'list'
+                        ? 'bg-white text-primary-600 shadow-sm'
+                        : 'text-secondary-500 hover:text-secondary-700'
+                    }`}
+                  >
+                    <FaList className="text-sm" />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </motion.div>
+
+        {/* Mobile Filter Drawer */}
+        <AnimatePresence>
+          {showMobileFilters && (
+            <>
+              {/* Backdrop */}
+              <motion.div
+                className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                onClick={() => setShowMobileFilters(false)}
+              />
+              
+              {/* Drawer */}
+              <motion.div
+                className="fixed inset-x-0 bottom-0 bg-white rounded-t-3xl shadow-2xl z-50 max-h-[80vh] overflow-y-auto md:hidden"
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              >
+                <div className="p-6">
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-lg font-bold text-secondary-800">Filters & Sort</h3>
+                    <button
+                      onClick={() => setShowMobileFilters(false)}
+                      className="p-2 hover:bg-secondary-100 rounded-lg transition-colors"
+                    >
+                      <FaTimes className="text-secondary-600" />
+                    </button>
+                  </div>
+
+                  {/* Sort Section */}
+                  <div className="mb-6">
+                    <h4 className="font-semibold text-secondary-700 mb-3">Sort By</h4>
+                    <div className="space-y-2">
+                      {[
+                        { value: 'featured', label: 'Featured' },
+                        { value: 'name', label: 'Name A-Z' },
+                        { value: 'price-low', label: 'Price: Low to High' },
+                        { value: 'price-high', label: 'Price: High to Low' },
+                        { value: 'newest', label: 'Newest First' }
+                      ].map((option) => (
+                        <button
+                          key={option.value}
+                          onClick={() => setSortBy(option.value)}
+                          className={`w-full text-left px-4 py-3 rounded-lg transition-colors ${
+                            sortBy === option.value
+                              ? 'bg-primary-500 text-white'
+                              : 'bg-secondary-50 text-secondary-700 hover:bg-secondary-100'
+                          }`}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Category Section */}
+                  <div className="mb-6">
+                    <h4 className="font-semibold text-secondary-700 mb-3">Categories</h4>
+                    <div className="space-y-2">
+                      {categories.map((category) => {
+                        const IconComponent = category.icon;
+                        const isSelected = selectedCategory === category.id;
+                        return (
+                          <button
+                            key={category.id}
+                            onClick={() => {
+                              setSelectedCategory(category.id);
+                              setShowMobileFilters(false);
+                            }}
+                            className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${
+                              isSelected
+                                ? 'bg-primary-500 text-white'
+                                : 'bg-secondary-50 text-secondary-700 hover:bg-secondary-100'
+                            }`}
+                          >
+                            <IconComponent className="mr-3" />
+                            {category.name}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        setSelectedCategory('all');
+                        setSortBy('featured');
+                        setSearchQuery('');
+                      }}
+                      className="flex-1 bg-secondary-100 text-secondary-700 py-3 rounded-lg font-medium"
+                    >
+                      Clear All
+                    </button>
+                    <button
+                      onClick={() => setShowMobileFilters(false)}
+                      className="flex-1 bg-primary-500 text-white py-3 rounded-lg font-medium"
+                    >
+                      Apply Filters
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
 
         {/* Content */}
         {loading ? (
@@ -318,52 +480,10 @@ const ProductList = () => {
             )}
 
             {/* Products Grid */}
-            <div className={`grid gap-4 md:gap-6 ${
-              viewMode === 'grid' 
-                ? 'grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-                : 'grid-cols-1'
-            }`}>
-              {filteredProducts.map((product, index) => (
-                <motion.div
-                  key={product._id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, delay: index * 0.05 }}
-                  className={viewMode === 'list' ? 'max-w-none' : ''}
-                >
-                  {viewMode === 'grid' ? (
-                    <ProductCard product={product} />
-                  ) : (
-                    <div className="bg-white rounded-2xl shadow-soft p-6 flex items-center space-x-6">
-                      <div className="w-24 h-24 bg-secondary-100 rounded-xl overflow-hidden flex-shrink-0">
-                        <img
-                          src={getFinalImageURL(product.image)}
-                          alt={product.name}
-                          className="w-full h-full object-cover"
-                          onError={handleImageError}
-                        />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-secondary-800 mb-1">{product.name}</h3>
-                        <p className="text-secondary-500 text-sm mb-2">{product.category}</p>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xl font-bold text-primary-600">
-                            {formatPrice(product.price)}
-                          </span>
-                          <motion.button
-                            className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                          >
-                            Add to Cart
-                          </motion.button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </motion.div>
-              ))}
-            </div>
+            <VirtualizedProductGrid 
+              products={filteredProducts} 
+              viewMode={viewMode}
+            />
           </motion.div>
         ) : (
           <motion.div

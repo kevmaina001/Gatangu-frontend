@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { FaSearch, FaUser, FaShoppingCart, FaBars, FaTimes } from 'react-icons/fa';
 import { AuthContext } from '../context/AuthContext';
 import { CartContext } from '../context/CartContext';
+import PWAInstallButton from './PWAInstallButton';
 
 const Navbar = () => {
   const { user, logout } = useContext(AuthContext);
@@ -274,6 +275,9 @@ const Navbar = () => {
                   </motion.span>
                 )}
               </Link>
+              
+              {/* PWA Install Button */}
+              <PWAInstallButton />
               
               {user?.id === ADMIN_ID && (
                 <Link

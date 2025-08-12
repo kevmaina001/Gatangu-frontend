@@ -16,10 +16,11 @@ import fetchWithAuth from '../utils/fetchWithAuth';
 import { useAuth } from '../context/AuthContext';
 import { jwtDecode } from 'jwt-decode';
 import { getFinalImageURL, handleImageError } from '../utils/imageUtils';
+import whatsappConfig from '../config/whatsappConfig';
 
 const CartPage = () => {
   const { cart, removeFromCart, updateQuantity, clearCart } = useCart();
-  const [formData, setFormData] = useState({ name: '', email: '', location: '', note: '' });
+  const [formData, setFormData] = useState({ name: '', location: '', note: '' });
   const { user, token, logout } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -67,42 +68,50 @@ const CartPage = () => {
   };
 
   const handleWhatsAppCheckout = async () => {
-    if (!formData.name || !formData.email || !formData.location) {
-      alert('Please fill out all required fields before proceeding to checkout.');
+    if (!formData.name || !formData.location) {
+      alert('Please fill out your name and location before proceeding to checkout.');
       return;
     }
 
-    if (!validateTokenBeforePayment()) return;
-
     setLoading(true);
     try {
-      // Save order to backend first
-      const response = await fetchWithAuth(
-        `${API_URL.replace('/api', '')}/api/orders`,
-        token,
-        logout,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            ...formData,
-            cart,
-            totalAmount,
-            paymentMethod: 'WhatsApp',
-            paymentReference: `WA-${Date.now()}`, // Generate WhatsApp reference
-          }),
+      // If user is logged in, save order to backend first
+      if (user && token) {
+        if (!validateTokenBeforePayment()) {
+          setLoading(false);
+          return;
         }
-      );
 
-      const data = await response.json();
+        const response = await fetchWithAuth(
+          `${API_URL.replace('/api', '')}/api/orders`,
+          token,
+          logout,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              ...formData,
+              email: user.email || 'not-provided@example.com', // Use user email or placeholder
+              cart,
+              totalAmount,
+              paymentMethod: 'WhatsApp',
+              paymentReference: `WA-${Date.now()}`,
+            }),
+          }
+        );
 
-      if (response.ok) {
-        // Send order details to WhatsApp
-        sendOrderDetailsToWhatsApp(data._id);
+        const data = await response.json();
+
+        if (response.ok) {
+          sendOrderDetailsToWhatsApp(data._id);
+        } else {
+          alert(`Failed to process order: ${data.message || 'Unknown error'}`);
+        }
       } else {
-        alert(`Failed to process order: ${data.message || 'Unknown error'}`);
+        // For guest users, send directly to WhatsApp without saving to backend
+        sendOrderDetailsToWhatsApp(null);
       }
     } catch (error) {
       console.error('Error processing order:', error.message);
@@ -124,7 +133,7 @@ const CartPage = () => {
       .map((item, index) => `${index + 1}. ${item.name} - Qty: ${item.quantity} - ${formatPrice(item.price)} each`)
       .join('\n');
 
-    const orderRef = orderId ? orderId.slice(-8).toUpperCase() : 'N/A';
+    const orderRef = orderId ? orderId.slice(-8).toUpperCase() : `GUEST-${Date.now().toString().slice(-8)}`;
 
     const message = `*GATANGU ENTERPRISE*
 *NEW ORDER REQUEST*
@@ -134,7 +143,6 @@ const CartPage = () => {
 
 *CUSTOMER INFORMATION*
 Name: ${formData.name}
-Email: ${formData.email}
 Location: ${formData.location}
 Instructions: ${formData.note || 'None'}
 
@@ -146,16 +154,29 @@ ${formattedCart}
 
 Please confirm this order and provide payment instructions.
 
-You can track this order in your profile on our website.
+${orderId ? 'You can track this order in your profile on our website.' : 'Create an account on our website to track future orders.'}
 
 Thank you for choosing Gatangu Enterprise.`;
 
-    const whatsappURL = `https://wa.me/254708328905?text=${encodeURIComponent(message)}`;
-    window.open(whatsappURL, '_blank');
+    // Get WhatsApp numbers from configuration
+    const whatsappNumbers = whatsappConfig.getNumbers();
+
+    // Send to all WhatsApp numbers with configured delays
+    whatsappNumbers.forEach((number, index) => {
+      setTimeout(() => {
+        const whatsappURL = `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+        window.open(whatsappURL, '_blank');
+      }, index * whatsappConfig.sendDelay);
+    });
     
     // Clear cart after sending to WhatsApp
     clearCart();
-    alert('Order saved and sent to WhatsApp! You can track this order in your profile.');
+    
+    if (orderId) {
+      alert(`Order saved and sent to ${whatsappNumbers.length} WhatsApp numbers! You can track this order in your profile.`);
+    } else {
+      alert(`Order sent to ${whatsappNumbers.length} WhatsApp numbers! We will contact you shortly to confirm payment and delivery details.`);
+    }
   };
 
   return (
@@ -343,43 +364,21 @@ Thank you for choosing Gatangu Enterprise.`;
                   </div>
 
                   {/* Checkout Section */}
-                  {!user ? (
-                    <motion.div 
-                      className="space-y-4"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                    >
-                      <div className="text-center p-4 bg-primary-50 rounded-xl">
-                        <FaUserPlus className="mx-auto text-2xl text-primary-600 mb-2" />
-                        <p className="text-secondary-700 mb-4">
-                          Sign up to complete your order
+                  <div className="space-y-4">
+                    {!user && (
+                      <div className="text-center p-3 bg-blue-50 rounded-xl">
+                        <p className="text-sm text-blue-700">
+                          💡 <strong>Tip:</strong> Create an account to track your orders
                         </p>
                       </div>
-                      <button
-                        onClick={handlePlaceOrder}
-                        className="w-full bg-primary-500 hover:bg-primary-600 text-white py-4 px-6 rounded-xl font-semibold transition-colors flex items-center justify-center space-x-2"
-                      >
-                        <FaUserPlus />
-                        <span>Sign Up to Place Order</span>
-                      </button>
-                    </motion.div>
-                  ) : (
+                    )}
                     <div className="space-y-4">
                       <div className="space-y-4">
                         <input
                           type="text"
                           name="name"
-                          placeholder="Full Name"
+                          placeholder="Full Name *"
                           value={formData.name}
-                          onChange={handleInputChange}
-                          className="w-full border border-secondary-200 p-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
-                          required
-                        />
-                        <input
-                          type="email"
-                          name="email"
-                          placeholder="Email for receipt"
-                          value={formData.email}
                           onChange={handleInputChange}
                           className="w-full border border-secondary-200 p-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
                           required
@@ -387,7 +386,7 @@ Thank you for choosing Gatangu Enterprise.`;
                         <input
                           type="text"
                           name="location"
-                          placeholder="Delivery Location"
+                          placeholder="Delivery Location *"
                           value={formData.location}
                           onChange={handleInputChange}
                           className="w-full border border-secondary-200 p-4 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-all"
@@ -432,7 +431,7 @@ Thank you for choosing Gatangu Enterprise.`;
                         Your order details will be sent to WhatsApp where you can complete the payment process
                       </p>
                     </div>
-                  )}
+                  </div>
                 </div>
               </motion.div>
             </motion.div>

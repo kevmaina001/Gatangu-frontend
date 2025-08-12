@@ -1,0 +1,92 @@
+/* Hero Slider Custom Styles */
+.hero-slider {
+  --swiper-pagination-bottom: 24px;
+  --swiper-pagination-bullet-size: 12px;
+  --swiper-pagination-bullet-horizontal-gap: 6px;
+}
+
+.hero-slider .swiper-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+}
+
+.hero-slider .swiper-pagination-bullet {
+  width: 12px !important;
+  height: 12px !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  opacity: 1 !important;
+  transition: all 0.3s ease !important;
+  border-radius: 50% !important;
+}
+
+.hero-slider .swiper-pagination-bullet-active {
+  background: white !important;
+  transform: scale(1.25) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+.hero-slider .swiper-button-next,
+.hero-slider .swiper-button-prev {
+  width: 48px !important;
+  height: 48px !important;
+  margin-top: -24px !important;
+  background: rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(10px) !important;
+  border-radius: 50% !important;
+  color: white !important;
+  transition: all 0.3s ease !important;
+}
+
+.hero-slider .swiper-button-next:hover,
+.hero-slider .swiper-button-prev:hover {
+  background: rgba(255, 255, 255, 0.3) !important;
+  transform: scale(1.1) !important;
+}
+
+.hero-slider .swiper-button-next::after,
+.hero-slider .swiper-button-prev::after {
+  font-size: 18px !important;
+  font-weight: bold !important;
+}
+
+.hero-slider .swiper-button-next {
+  right: 16px !important;
+}
+
+.hero-slider .swiper-button-prev {
+  left: 16px !important;
+}
+
+/* Fade effect improvements */
+.hero-slider .swiper-slide {
+  transition-timing-function: ease-in-out !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .hero-slider {
+    --swiper-pagination-bottom: 16px;
+  }
+  
+  .hero-slider .swiper-button-next,
+  .hero-slider .swiper-button-prev {
+    width: 40px !important;
+    height: 40px !important;
+    margin-top: -20px !important;
+  }
+  
+  .hero-slider .swiper-button-next::after,
+  .hero-slider .swiper-button-prev::after {
+    font-size: 14px !important;
+  }
+  
+  .hero-slider .swiper-button-next {
+    right: 12px !important;
+  }
+  
+  .hero-slider .swiper-button-prev {
+    left: 12px !important;
+  }
+}

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { FaShoppingCart, FaHeart, FaEye } from 'react-icons/fa';
 import { CartContext } from '../context/CartContext';
 import { getFinalImageURL, handleImageError } from '../utils/imageUtils';
+import LazyImage from './LazyImage';
 
 const ProductCard = ({ product }) => {
   const [imageLoaded, setImageLoaded] = useState(false);
@@ -42,18 +43,10 @@ const ProductCard = ({ product }) => {
       >
         {/* Product Image */}
         <div className="relative aspect-square overflow-hidden bg-secondary-50">
-          {!imageLoaded && !imageError && (
-            <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-8 h-8 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
-            </div>
-          )}
-          
-          <motion.img
+          <LazyImage
             src={finalImageURL}
             alt={product.name}
-            className={`w-full h-full object-cover transition-all duration-500 ${
-              imageLoaded ? 'opacity-100' : 'opacity-0'
-            } group-hover:scale-110`}
+            className="group-hover:scale-110 transition-transform duration-500"
             onLoad={() => setImageLoaded(true)}
             onError={(e) => {
               setImageError(true);
