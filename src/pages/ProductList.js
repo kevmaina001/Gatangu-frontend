@@ -11,12 +11,25 @@ import {
   FaFire,
   FaLeaf,
   FaFilter,
-  FaTimes
+  FaTimes,
+  FaPills,
+  FaTools,
+  FaBaby,
+  FaAppleAlt,
+  FaLightbulb,
+  FaBreadSlice,
+  FaOilCan,
+  FaWineBottle,
+  FaSeedling,
+  FaClipboardList,
+  FaCoffee,
+  FaBoxOpen
 } from 'react-icons/fa';
 import ProductCard from '../components/ProductCard';
 import VirtualizedProductGrid from '../components/VirtualizedProductGrid';
 import axios from '../services/api';
 import { getFinalImageURL, handleImageError } from '../utils/imageUtils';
+import { CATEGORY_DISPLAY } from '../utils/categories';
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
@@ -29,15 +42,37 @@ const ProductList = () => {
   const [viewMode, setViewMode] = useState('grid');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
   
-  const categories = [
-    { id: 'all', name: 'All Products', icon: FaShoppingBag, color: 'primary' },
-    { id: 'dairy', name: 'Dairy & Eggs', icon: FaLeaf, color: 'green' },
-    { id: 'bakery', name: 'Bakery', icon: FaTag, color: 'yellow' },
-    { id: 'grains', name: 'Grains & Flour', icon: FaLeaf, color: 'orange' },
-    { id: 'vegetables', name: 'Fresh Produce', icon: FaLeaf, color: 'green' },
-    { id: 'household', name: 'Household', icon: FaShoppingBag, color: 'blue' },
-    { id: 'personal-care', name: 'Personal Care', icon: FaStar, color: 'pink' }
-  ];
+  const getIconForCategory = (categoryName) => {
+    switch (categoryName) {
+      case 'All': return FaShoppingBag;
+      case 'Lighters': return FaFire;
+      case 'Groceries': return FaAppleAlt;
+      case 'Personal Care': return FaPills;
+      case 'Flour & Rice': return FaBreadSlice;
+      case 'Hardware': return FaTools;
+      case 'Fats & Oils': return FaOilCan;
+      case 'Baby Hygiene': return FaBaby;
+      case 'Animal Health': return FaPills;
+      case 'Food Additives': return FaClipboardList;
+      case 'Bakery': return FaBreadSlice;
+      case 'Farm Inputs': return FaSeedling;
+      case 'Spreads': return FaOilCan;
+      case 'Lightings': return FaLightbulb;
+      case 'Stationery': return FaClipboardList;
+      case 'Beverages': return FaCoffee;
+      case 'Wholesale': return FaBoxOpen;
+      case 'Milk': return FaWineBottle;
+      case 'Medicine': return FaPills;
+      default: return FaTag;
+    }
+  };
+
+  const categories = CATEGORY_DISPLAY.map(cat => ({
+    id: cat.name.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and'),
+    name: cat.name,
+    icon: getIconForCategory(cat.name),
+    color: cat.color.replace('bg-', '').replace('-500', '').replace('-400', '').replace('-100', '')
+  }));
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -69,9 +104,13 @@ const ProductList = () => {
 
     // Filter by category
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter(product =>
-        product.category && product.category.toLowerCase().includes(selectedCategory.toLowerCase())
-      );
+      // Find the actual category name from the id
+      const selectedCategoryObj = categories.find(cat => cat.id === selectedCategory);
+      if (selectedCategoryObj) {
+        filtered = filtered.filter(product =>
+          product.category && product.category === selectedCategoryObj.name
+        );
+      }
     }
 
     // Sort products

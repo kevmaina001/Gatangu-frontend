@@ -8,8 +8,9 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
-import { FaChevronRight, FaFire, FaTags, FaShoppingBag } from 'react-icons/fa';
+import { FaChevronRight, FaFire, FaTags, FaShoppingBag, FaPills, FaTools, FaBaby, FaAppleAlt, FaLightbulb, FaBreadSlice, FaOilCan, FaWineBottle, FaSeedling, FaClipboardList, FaCoffee, FaBoxOpen } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
+import { CATEGORY_DISPLAY } from '../utils/categories';
 
 // Import slider images from assets
 import sliderImage from '../Assets/images/slider.jpg';
@@ -22,16 +23,35 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('All');
 
-  const categories = [
-    { name: 'All', icon: FaShoppingBag, color: 'bg-primary-500' },
-    { name: 'Beverages', icon: FaTags, color: 'bg-blue-500' },
-    { name: 'Groceries', icon: FaShoppingBag, color: 'bg-green-500' },
-    { name: 'Personal Care', icon: FaTags, color: 'bg-purple-500' },
-    { name: 'Household', icon: FaShoppingBag, color: 'bg-pink-500' },
-    { name: 'Bakery', icon: FaTags, color: 'bg-orange-500' },
-    { name: 'Medicine', icon: FaShoppingBag, color: 'bg-red-500' },
-    { name: 'Hardware', icon: FaTags, color: 'bg-gray-500' },
-  ];
+  const getIconForCategory = (categoryName) => {
+    switch (categoryName) {
+      case 'Lighters': return FaFire;
+      case 'Groceries': return FaAppleAlt;
+      case 'Personal Care': return FaPills;
+      case 'Flour & Rice': return FaBreadSlice;
+      case 'Hardware': return FaTools;
+      case 'Fats & Oils': return FaOilCan;
+      case 'Baby Hygiene': return FaBaby;
+      case 'Animal Health': return FaPills;
+      case 'Food Additives': return FaClipboardList;
+      case 'Bakery': return FaBreadSlice;
+      case 'Farm Inputs': return FaSeedling;
+      case 'Spreads': return FaOilCan;
+      case 'Lightings': return FaLightbulb;
+      case 'Stationery': return FaClipboardList;
+      case 'Beverages': return FaCoffee;
+      case 'Wholesale': return FaBoxOpen;
+      case 'Milk': return FaWineBottle;
+      case 'Medicine': return FaPills;
+      default: return FaTags;
+    }
+  };
+
+  const categories = CATEGORY_DISPLAY.map(cat => ({
+    name: cat.name,
+    icon: getIconForCategory(cat.name),
+    color: cat.color
+  }));
 
   const sliderImages = [
     {
