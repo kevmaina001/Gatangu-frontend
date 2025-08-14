@@ -26,7 +26,7 @@ const ADMIN_ID = '674e4b8c22fc2df1f90d95ae'; // Hardcoded Admin User ID
   // Fetch products from the backend
   const fetchProducts = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/products`);
+      const res = await fetch(`${API_URL}/products`);
       if (res.ok) {
         const data = await res.json();
         setProducts(data);
@@ -40,7 +40,7 @@ const ADMIN_ID = '674e4b8c22fc2df1f90d95ae'; // Hardcoded Admin User ID
   const fetchOrders = async () => {
     setLoadingOrders(true);
     try {
-      const res = await fetchWithAuth(`${API_URL}/api/orders`, token, logout);
+      const res = await fetchWithAuth(`${API_URL}/orders`, token, logout);
       if (res.ok) {
         const data = await res.json();
         setOrders(Array.isArray(data) ? data : []);
