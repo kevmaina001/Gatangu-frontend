@@ -26,7 +26,7 @@ export const whatsappConfig = {
   getNumbers: () => whatsappConfig.orderNumbers.map(config => config.number),
   
   // Get primary number (first in list)
-  getPrimaryNumber: () => whatsappConfig.orderNumbers[0]?.number || '254724526980'
+  getPrimaryNumber: () => whatsappConfig.orderNumbers[0]?.number || '254708328905'
 };
 
 export default whatsappConfig;

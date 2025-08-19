@@ -14,8 +14,36 @@ const api = axios.create({
     // Add Authorization header dynamically if a token exists
     Authorization: `Bearer ${localStorage.getItem('authToken') || ''}`, 
   },
-  timeout: 10000, // Set a timeout of 10 seconds
+  timeout: 30000, // Set a timeout of 30 seconds for better slow connection handling
 });
+
+// Retry configuration
+const MAX_RETRIES = 4;
+const RETRY_DELAYS = [0, 1000, 3000, 5000]; // Delays in milliseconds
+
+// Enhanced retry function with exponential backoff
+const retryRequest = async (config, retryCount = 0) => {
+  try {
+    const response = await axios.request(config);
+    return response;
+  } catch (error) {
+    const shouldRetry = retryCount < MAX_RETRIES && 
+                       (error.code === 'ECONNABORTED' || 
+                        error.code === 'NETWORK_ERROR' ||
+                        (error.response?.status >= 500 && error.response?.status < 600) ||
+                        !error.response); // Network errors
+
+    if (shouldRetry) {
+      const delay = RETRY_DELAYS[retryCount] || 5000;
+      console.log(`Retrying request (${retryCount + 1}/${MAX_RETRIES}) after ${delay}ms delay...`);
+      
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return retryRequest(config, retryCount + 1);
+    }
+    
+    throw error;
+  }
+};
 
 // Request interceptor for adding token dynamically
 api.interceptors.request.use(
@@ -47,21 +75,29 @@ api.interceptors.response.use(
       url: error.config?.url,
     });
 
-    // Handle specific error statuses
+    // Handle specific error statuses (but don't show harsh alerts)
     if (error.response?.status === 401) {
       console.warn('Unauthorized access - redirecting to login.');
       // Optionally, redirect to login
       window.location.href = '/login';
     } else if (error.response?.status === 403) {
       console.warn('Forbidden - insufficient permissions.');
-      alert('You do not have permission to perform this action.');
     } else if (error.response?.status >= 500) {
-      console.error('Server error. Please try again later.');
+      console.error('Server error. Will retry automatically.');
     }
 
     // Reject the error so it can be handled further down the promise chain
     return Promise.reject(error);
   }
 );
+
+// Enhanced API methods with retry logic
+api.getWithRetry = async (url, config = {}) => {
+  return retryRequest({ ...config, method: 'GET', url, baseURL: api.defaults.baseURL, headers: { ...api.defaults.headers, ...config.headers } });
+};
+
+api.postWithRetry = async (url, data, config = {}) => {
+  return retryRequest({ ...config, method: 'POST', url, data, baseURL: api.defaults.baseURL, headers: { ...api.defaults.headers, ...config.headers } });
+};
 
 export default api;

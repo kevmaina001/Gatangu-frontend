@@ -9,35 +9,89 @@ import {
   FaExclamationTriangle
 } from 'react-icons/fa';
 import ProductCard from '../components/ProductCard';
+import EnhancedLoader from '../components/EnhancedLoader';
 import axios from '../services/api';
+import { ProductCache } from '../utils/cacheUtils';
 
 const CategoryProducts = () => {
   const { categoryName } = useParams();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showCachedData, setShowCachedData] = useState(false);
+  const [retryAttempt, setRetryAttempt] = useState(0);
   const [sortBy, setSortBy] = useState('name');
   const [filteredProducts, setFilteredProducts] = useState([]);
 
-  useEffect(() => {
-    const fetchCategoryProducts = async () => {
-      setLoading(true);
-      try {
-        const response = await axios.get('/products');
-        const filtered = response.data.filter(
-          (product) =>
-            product.category && product.category.toLowerCase() === categoryName.toLowerCase()
-        );
-        setProducts(filtered);
-        setError(null);
-      } catch (err) {
-        console.error('Error fetching products:', err);
-        setError('Failed to fetch products. Please try again.');
-      } finally {
-        setLoading(false);
-      }
-    };
+  const fetchCategoryProducts = async (isRetry = false) => {
+    try {
+      // If not a retry, check for cached data first
+      if (!isRetry) {
+        const cachedCategoryProducts = ProductCache.getCategoryProducts(categoryName);
+        if (cachedCategoryProducts) {
+          setProducts(cachedCategoryProducts);
+          setShowCachedData(true);
+          setLoading(false);
+          setError(null);
+          return;
+        }
 
+        // Try to get from general products cache and filter
+        const cachedAllProducts = ProductCache.getProducts();
+        if (cachedAllProducts) {
+          const filtered = cachedAllProducts.filter(
+            (product) =>
+              product.category && product.category.toLowerCase() === categoryName.toLowerCase()
+          );
+          if (filtered.length > 0) {
+            setProducts(filtered);
+            setShowCachedData(true);
+          }
+        }
+      }
+
+      // Use enhanced API with retry logic
+      const response = await axios.getWithRetry('/products');
+      const filtered = response.data.filter(
+        (product) =>
+          product.category && product.category.toLowerCase() === categoryName.toLowerCase()
+      );
+      
+      // Update state with fresh data
+      setProducts(filtered);
+      setError(null);
+      setShowCachedData(false);
+      setRetryAttempt(0);
+      
+      // Cache the filtered data for this category
+      ProductCache.setCategoryProducts(categoryName, filtered);
+      
+    } catch (error) {
+      console.error('Error fetching category products:', error);
+      
+      // Check if we have cached data to fall back to
+      const cachedProducts = ProductCache.getCategoryProducts(categoryName);
+      if (cachedProducts && !isRetry) {
+        setProducts(cachedProducts);
+        setShowCachedData(true);
+        setError('Unable to refresh products. Showing cached results.');
+      } else {
+        setError(cachedProducts ? null : 'Having trouble loading products. Please check your connection.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRetry = () => {
+    setRetryAttempt(prev => prev + 1);
+    setLoading(true);
+    setError(null);
+    fetchCategoryProducts(true);
+  };
+
+  useEffect(() => {
+    setLoading(true);
     fetchCategoryProducts();
   }, [categoryName]);
 
@@ -129,45 +183,55 @@ const CategoryProducts = () => {
           )}
         </motion.div>
 
-        {/* Content */}
-        {loading ? (
+        {/* Cached Data Notice */}
+        {showCachedData && !loading && (
           <motion.div
-            className="text-center py-20"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="w-16 h-16 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-6" />
-            <h3 className="text-lg font-semibold text-secondary-700 mb-2">
-              Loading Products...
-            </h3>
-            <p className="text-secondary-500">
-              Please wait while we fetch products in {formatCategoryName(categoryName)}
-            </p>
-          </motion.div>
-        ) : error ? (
-          <motion.div
-            className="text-center py-20"
-            initial={{ opacity: 0, y: 20 }}
+            className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex items-center justify-between"
+            initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
+            transition={{ duration: 0.3 }}
           >
-            <div className="w-16 h-16 bg-red-100 rounded-xl flex items-center justify-center mx-auto mb-6">
-              <FaExclamationTriangle className="text-red-500 text-2xl" />
+            <div className="flex items-center">
+              <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center mr-3">
+                <FaTag className="text-white text-sm" />
+              </div>
+              <div>
+                <p className="text-blue-800 font-medium text-sm">
+                  Showing cached {formatCategoryName(categoryName)} products
+                </p>
+                <p className="text-blue-600 text-xs">
+                  Products will auto-refresh when connection improves
+                </p>
+              </div>
             </div>
-            <h3 className="text-lg font-semibold text-secondary-700 mb-2">
-              Error Loading Category
-            </h3>
-            <p className="text-red-500 mb-6">{error}</p>
             <motion.button
-              onClick={() => window.location.reload()}
-              className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-xl font-medium transition-colors"
+              onClick={handleRetry}
+              className="text-blue-600 hover:text-blue-800 text-sm font-medium"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
             >
-              Try Again
+              Refresh Now
             </motion.button>
           </motion.div>
+        )}
+
+        {/* Content */}
+        {loading && !showCachedData ? (
+          <EnhancedLoader 
+            isLoading={loading} 
+            hasError={false}
+            onRetry={handleRetry}
+            showCachedData={showCachedData}
+            loadingText={`Loading ${formatCategoryName(categoryName)} Products...`}
+          />
+        ) : error && !showCachedData ? (
+          <EnhancedLoader 
+            isLoading={false} 
+            hasError={true}
+            onRetry={handleRetry}
+            showCachedData={showCachedData}
+            errorMessage={error}
+          />
         ) : filteredProducts.length > 0 ? (
           <motion.div
             initial={{ opacity: 0 }}
