@@ -1,5 +1,6 @@
 import React, { useEffect, Suspense } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { HelmetProvider } from 'react-helmet-async';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 
@@ -53,53 +54,55 @@ const App = () => {
   }, []);
 
   return (
-    <Router>
-      <AuthProvider>
-        <CartProvider>
-          <div className="flex flex-col min-h-screen">
-            {/* Navbar */}
-            <Navbar />
+    <HelmetProvider>
+      <Router>
+        <AuthProvider>
+          <CartProvider>
+            <div className="flex flex-col min-h-screen">
+              {/* Navbar */}
+              <Navbar />
 
-            {/* Main Content */}
-            <main className="flex-grow">
-              <Suspense fallback={<PageLoader />}>
-                <Routes>
-                  {/* Public Routes */}
-                  <Route path="/" element={<Home />} />
-                  <Route path="/products/:id" element={<ProductDetails />} />
-                  <Route path="/cart" element={<Cart />} />
-                  <Route path="/checkout" element={<Checkout />} />
-                  <Route path="/login" element={<SignIn />} />
-                  <Route path="/register" element={<SignUp />} />
-                  <Route path="/password-recovery" element={<PasswordRecovery />} />
-                  <Route path="/reset-password" element={<ResetPassword />} />
-                  <Route path="/category/:categoryName" element={<CategoryProducts />} />
-                  <Route path="/search" element={<SearchResults />} />
-                  <Route path="/shop" element={<ProductList />} />
+              {/* Main Content */}
+              <main className="flex-grow">
+                <Suspense fallback={<PageLoader />}>
+                  <Routes>
+                    {/* Public Routes */}
+                    <Route path="/" element={<Home />} />
+                    <Route path="/products/:id" element={<ProductDetails />} />
+                    <Route path="/cart" element={<Cart />} />
+                    <Route path="/checkout" element={<Checkout />} />
+                    <Route path="/login" element={<SignIn />} />
+                    <Route path="/register" element={<SignUp />} />
+                    <Route path="/password-recovery" element={<PasswordRecovery />} />
+                    <Route path="/reset-password" element={<ResetPassword />} />
+                    <Route path="/category/:categoryName" element={<CategoryProducts />} />
+                    <Route path="/search" element={<SearchResults />} />
+                    <Route path="/shop" element={<ProductList />} />
 
-                  {/* Protected/Admin Routes */}
-                  <Route path="/profile" element={<Profile />} />
-                  <Route path="/admin-panel" element={<AdminPanel />} />
-                  <Route path="/add-product" element={<AddProduct />} />
-                </Routes>
-              </Suspense>
-            </main>
+                    {/* Protected/Admin Routes */}
+                    <Route path="/profile" element={<Profile />} />
+                    <Route path="/admin-panel" element={<AdminPanel />} />
+                    <Route path="/add-product" element={<AddProduct />} />
+                  </Routes>
+                </Suspense>
+              </main>
 
-            {/* Footer */}
-            <Footer />
-            
-            {/* Bottom Navigation - Mobile Only */}
-            <BottomNavigation />
-            
-            {/* PWA Install Prompt */}
-            <PWAInstallPrompt />
-            
-            {/* PWA Test Button - Uncomment for testing */}
-            {/* <PWATestButton /> */}
-          </div>
-        </CartProvider>
-      </AuthProvider>
-    </Router>
+              {/* Footer */}
+              <Footer />
+              
+              {/* Bottom Navigation - Mobile Only */}
+              <BottomNavigation />
+              
+              {/* PWA Install Prompt */}
+              <PWAInstallPrompt />
+              
+              {/* PWA Test Button - Uncomment for testing */}
+              {/* <PWATestButton /> */}
+            </div>
+          </CartProvider>
+        </AuthProvider>
+      </Router>
+    </HelmetProvider>
   );
 };
 

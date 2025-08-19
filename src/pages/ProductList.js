@@ -28,6 +28,7 @@ import {
 import ProductCard from '../components/ProductCard';
 import VirtualizedProductGrid from '../components/VirtualizedProductGrid';
 import EnhancedLoader from '../components/EnhancedLoader';
+import SEO from '../components/SEO';
 import axios from '../services/api';
 import { getFinalImageURL, handleImageError } from '../utils/imageUtils';
 import { CATEGORY_DISPLAY } from '../utils/categories';
@@ -192,8 +193,17 @@ const ProductList = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 pt-32 pb-28 md:pb-20">
-      <div className="container mx-auto px-4">
+    <>
+      <SEO 
+        title="Shop All Products - Gatangu | Online Shopping Kenya"
+        description="Browse our complete collection of fresh groceries, personal care, and household items. Quality products with fast delivery across Kenya. Shop now at Gatangu!"
+        keywords="shop all products, online shopping kenya, groceries, household items, personal care, gatangu shop, buy online kenya"
+        type="website"
+        image={`${window.location.origin}/images/gatangu-shop-og.jpg`}
+        url={window.location.href}
+      />
+      <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-secondary-50 pt-32 pb-28 md:pb-20">
+        <div className="container mx-auto px-4">
         {/* Hero Section */}
         <motion.div
           className="text-center mb-8 md:mb-12"
@@ -614,6 +624,7 @@ const ProductList = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 

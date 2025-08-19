@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProductCard from '../components/ProductCard';
 import HeroSlider from '../components/HeroSlider';
+import SEO from '../components/SEO';
 import api from '../services/api';
 import 'swiper/css';
 import { Swiper, SwiperSlide } from 'swiper/react';
@@ -109,9 +110,18 @@ const Home = () => {
       );
 
   return (
-    <div className="min-h-screen bg-backgroundLight">
-      {/* Adjust top padding to account for new navbar height */}
-      <div className="pt-32 md:pt-36 pb-28 md:pb-8">
+    <>
+      <SEO 
+        title="Gatangu - Fresh Products Delivered to Your Doorstep | Online Grocery Shopping Kenya"
+        description="Shop fresh groceries, personal care, and household items at Gatangu. Fast delivery across Kenya with competitive prices. Order online for convenient shopping experience."
+        keywords="gatangu, online grocery shopping kenya, fresh products delivery, household items kenya, groceries online, fast delivery kenya, e-commerce kenya"
+        type="website"
+        image={`${window.location.origin}/images/gatangu-home-og.jpg`}
+        url={window.location.href}
+      />
+      <div className="min-h-screen bg-backgroundLight">
+        {/* Adjust top padding to account for new navbar height */}
+        <div className="pt-32 md:pt-36 pb-28 md:pb-8">
         
         {/* Hero Slider Section */}
         <motion.div 
@@ -303,6 +313,7 @@ const Home = () => {
         </motion.div>
       </div>
     </div>
+    </>
   );
 };
 

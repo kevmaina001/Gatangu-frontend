@@ -20,6 +20,7 @@ import { useCart } from '../context/CartContext';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { getFinalImageURL, handleImageError, getProductImages } from '../utils/imageUtils';
+import SEO from '../components/SEO';
 
 const ProductDetails = () => {
   const { id } = useParams();
@@ -201,10 +202,22 @@ const ProductDetails = () => {
   const productImages = getProductImages(product.image);
 
   return (
-    <div className="min-h-screen bg-backgroundLight pt-32 pb-28 md:pb-20">
-      <ToastContainer />
-      
-      <div className="container mx-auto px-4">
+    <>
+      <SEO 
+        title={`${product.name} - Buy Online at Gatangu | Best Price in Kenya`}
+        description={`Buy ${product.name} online at Gatangu. ${product.description || `Quality ${product.category || 'product'} available with fast delivery across Kenya.`} Price: KES ${product.price}. Order now!`}
+        keywords={`${product.name}, ${product.category}, buy online kenya, ${product.name} price, gatangu products, online shopping kenya`}
+        type="product"
+        product={product}
+        price={product.price}
+        availability={product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock"}
+        image={getFinalImageURL(product.image)}
+        url={window.location.href}
+      />
+      <div className="min-h-screen bg-backgroundLight pt-32 pb-28 md:pb-20">
+        <ToastContainer />
+        
+        <div className="container mx-auto px-4">
         {/* Back Button */}
         <motion.button
           onClick={() => navigate(-1)}
@@ -403,6 +416,7 @@ const ProductDetails = () => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 

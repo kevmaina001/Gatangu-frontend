@@ -1,0 +1,65 @@
+# Robots.txt for Gatangu E-commerce Website
+User-agent: *
+Allow: /
+
+# Allow important pages for SEO
+Allow: /
+Allow: /shop
+Allow: /products/*
+Allow: /category/*
+Allow: /search
+
+# Disallow admin and user-specific pages
+Disallow: /admin-panel
+Disallow: /add-product
+Disallow: /profile
+Disallow: /cart
+Disallow: /checkout
+Disallow: /login
+Disallow: /register
+Disallow: /password-recovery
+Disallow: /reset-password
+
+# Disallow dynamic search URLs with parameters
+Disallow: /search?*
+
+# Allow important static resources
+Allow: /static/
+Allow: /images/
+Allow: /assets/
+Allow: /*.css
+Allow: /*.js
+
+# Sitemap location
+Sitemap: https://gatangu.com/sitemap.xml
+
+# Crawl delay (optional - helps with server load)
+Crawl-delay: 1
+
+# Specific rules for major search engines
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# Block any scraping bots
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+# Block access to sensitive files
+Disallow: /.env
+Disallow: /package.json
+Disallow: /package-lock.json
+Disallow: /node_modules/
+Disallow: /.git/
+Disallow: /src/
+Disallow: /build/manifest.json

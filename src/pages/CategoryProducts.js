@@ -10,6 +10,7 @@ import {
 } from 'react-icons/fa';
 import ProductCard from '../components/ProductCard';
 import EnhancedLoader from '../components/EnhancedLoader';
+import SEO from '../components/SEO';
 import axios from '../services/api';
 import { ProductCache } from '../utils/cacheUtils';
 
@@ -121,8 +122,18 @@ const CategoryProducts = () => {
   };
 
   return (
-    <div className="min-h-screen bg-backgroundLight pt-32 pb-28 md:pb-20">
-      <div className="container mx-auto px-4">
+    <>
+      <SEO 
+        title={`${formatCategoryName(categoryName)} Products - Gatangu | Buy Online Kenya`}
+        description={`Shop ${formatCategoryName(categoryName).toLowerCase()} products at Gatangu. Quality items with fast delivery across Kenya. Best prices guaranteed.`}
+        keywords={`${formatCategoryName(categoryName)}, ${categoryName} products, buy ${categoryName} online kenya, gatangu ${categoryName}, online shopping kenya`}
+        type="website"
+        category={formatCategoryName(categoryName)}
+        image={`${window.location.origin}/images/category-${categoryName}-og.jpg`}
+        url={window.location.href}
+      />
+      <div className="min-h-screen bg-backgroundLight pt-32 pb-28 md:pb-20">
+        <div className="container mx-auto px-4">
         {/* Header */}
         <motion.div
           className="mb-8"
@@ -287,6 +298,7 @@ const CategoryProducts = () => {
         )}
       </div>
     </div>
+    </>
   );
 };
 

@@ -45,7 +45,7 @@ const ProductCard = ({ product }) => {
         <div className="relative aspect-square overflow-hidden bg-secondary-50">
           <LazyImage
             src={finalImageURL}
-            alt={product.name}
+            alt={`${product.name} - ${product.category} available at Gatangu for KES ${product.price}`}
             className="group-hover:scale-110 transition-transform duration-500"
             onLoad={() => setImageLoaded(true)}
             onError={(e) => {
