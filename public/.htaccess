@@ -1,0 +1,38 @@
+# Sitemap and XML files MIME type
+<Files "sitemap.xml">
+    ForceType application/xml
+</Files>
+
+<Files "*.xml">
+    ForceType application/xml
+</Files>
+
+# Enable GZIP compression for sitemaps
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE application/xml
+    AddOutputFilterByType DEFLATE text/xml
+</IfModule>
+
+# Cache control for sitemap
+<Files "sitemap.xml">
+    ExpiresActive On
+    ExpiresDefault "access plus 1 day"
+</Files>
+
+# Security headers
+Header always set X-Content-Type-Options nosniff
+Header always set X-Frame-Options DENY
+Header always set X-XSS-Protection "1; mode=block"
+
+# Redirect HTTP to HTTPS (if not already done)
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Handle React Router (History API fallback)
+RewriteEngine On
+RewriteBase /
+RewriteRule ^index\.html$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.html [L]
