@@ -3,7 +3,7 @@ import { CATEGORY_DISPLAY } from './categories';
 
 // Generate dynamic sitemap for the application
 export const generateSitemap = async () => {
-  const baseURL = process.env.REACT_APP_SITE_URL || 'https://gatangu.com';
+  const baseURL = process.env.REACT_APP_SITE_URL || 'https://gatanguenterprise.com';
   const currentDate = new Date().toISOString();
   
   // Static pages with their priorities and change frequencies
@@ -75,7 +75,7 @@ ${allPages.map(page => `  <url>
 
 // Generate sitemap index for large sites
 export const generateSitemapIndex = () => {
-  const baseURL = process.env.REACT_APP_SITE_URL || 'https://gatangu.com';
+  const baseURL = process.env.REACT_APP_SITE_URL || 'https://gatanguenterprise.com';
   const currentDate = new Date().toISOString();
 
   const sitemapIndexXML = `<?xml version="1.0" encoding="UTF-8"?>

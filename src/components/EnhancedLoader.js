@@ -8,10 +8,18 @@ const EnhancedLoader = ({
   onRetry, 
   showCachedData = false,
   errorMessage = null,
-  loadingText = "Loading products..."
+  loadingText = "Loading products...",
+  // Auto-retry specific props
+  isRetrying = false,
+  retryCount = 0,
+  retryStage = 0,
+  autoRetryMode = false,
+  nextRetryDelay = 0,
+  maxRetries = 5
 }) => {
   const [loadingStage, setLoadingStage] = useState(0);
   const [showSlowConnectionTip, setShowSlowConnectionTip] = useState(false);
+  const [retryCountdown, setRetryCountdown] = useState(0);
 
   const loadingStages = [
     { text: loadingText, icon: FaShoppingBag, delay: 0 },
@@ -20,10 +28,44 @@ const EnhancedLoader = ({
     { text: "Still working on it...", icon: FaWifi, delay: 15000 },
   ];
 
+  const autoRetryStages = [
+    { text: "Loading products...", icon: FaShoppingBag },
+    { text: "Connecting to server...", icon: FaWifi },
+    { text: "Retrying connection...", icon: FaClock },
+    { text: "Trying alternative route...", icon: FaWifi },
+    { text: "Almost there...", icon: FaClock },
+  ];
+
+  // Handle countdown for auto-retry mode
   useEffect(() => {
-    if (!isLoading) {
+    if (autoRetryMode && isRetrying && nextRetryDelay > 0) {
+      setRetryCountdown(Math.ceil(nextRetryDelay / 1000));
+      
+      const interval = setInterval(() => {
+        setRetryCountdown(prev => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [autoRetryMode, isRetrying, nextRetryDelay]);
+
+  useEffect(() => {
+    if (!isLoading && !isRetrying) {
       setLoadingStage(0);
       setShowSlowConnectionTip(false);
+      setRetryCountdown(0);
+      return;
+    }
+
+    // In auto-retry mode, use retry stage instead of time-based stages
+    if (autoRetryMode) {
+      setLoadingStage(Math.min(retryStage, autoRetryStages.length - 1));
       return;
     }
 
@@ -43,9 +85,10 @@ const EnhancedLoader = ({
     });
 
     return () => timers.forEach(timer => clearTimeout(timer));
-  }, [isLoading]);
+  }, [isLoading, isRetrying, autoRetryMode, retryStage]);
 
-  if (hasError) {
+  // In auto-retry mode, don't show error UI - keep user in loading state
+  if (hasError && !autoRetryMode) {
     return (
       <motion.div
         className="bg-white rounded-2xl shadow-medium p-8 md:p-12 text-center"
@@ -110,9 +153,12 @@ const EnhancedLoader = ({
     );
   }
 
-  if (!isLoading) return null;
+  if (!isLoading && !isRetrying) return null;
 
-  const currentStage = loadingStages[loadingStage];
+  // Use appropriate stage data based on mode
+  const currentStage = autoRetryMode 
+    ? autoRetryStages[loadingStage] 
+    : loadingStages[loadingStage];
   const IconComponent = currentStage.icon;
 
   return (
@@ -138,7 +184,7 @@ const EnhancedLoader = ({
       {/* Loading Text */}
       <AnimatePresence mode="wait">
         <motion.div
-          key={loadingStage}
+          key={autoRetryMode ? `retry-${retryStage}` : loadingStage}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -10 }}
@@ -147,12 +193,24 @@ const EnhancedLoader = ({
           <h3 className="text-xl font-semibold text-secondary-700 mb-2">
             {currentStage.text}
           </h3>
+          
+          {/* Auto-retry specific information */}
+          {autoRetryMode && (
+            <div className="text-secondary-500 text-sm space-y-1">
+              {retryCount > 0 && (
+                <p>Attempt {retryCount + 1} of {maxRetries + 1}</p>
+              )}
+              {retryCountdown > 0 && (
+                <p>Next attempt in {retryCountdown}s...</p>
+              )}
+            </div>
+          )}
         </motion.div>
       </AnimatePresence>
 
       {/* Progress indicator */}
       <div className="flex justify-center space-x-2 mb-4">
-        {loadingStages.map((_, index) => (
+        {(autoRetryMode ? autoRetryStages : loadingStages).map((_, index) => (
           <motion.div
             key={index}
             className={`h-2 rounded-full transition-all duration-300 ${
@@ -166,7 +224,7 @@ const EnhancedLoader = ({
 
       {/* Stage-specific messages */}
       <AnimatePresence>
-        {loadingStage === 0 && (
+        {!autoRetryMode && loadingStage === 0 && (
           <motion.p
             className="text-secondary-500 text-sm"
             initial={{ opacity: 0 }}
@@ -177,7 +235,7 @@ const EnhancedLoader = ({
           </motion.p>
         )}
         
-        {loadingStage === 1 && (
+        {!autoRetryMode && loadingStage === 1 && (
           <motion.p
             className="text-secondary-500 text-sm"
             initial={{ opacity: 0 }}
@@ -188,7 +246,7 @@ const EnhancedLoader = ({
           </motion.p>
         )}
         
-        {loadingStage >= 2 && (
+        {!autoRetryMode && loadingStage >= 2 && (
           <motion.div
             className="text-secondary-500 text-sm space-y-2"
             initial={{ opacity: 0 }}
@@ -199,6 +257,28 @@ const EnhancedLoader = ({
             {showCachedData && (
               <p className="text-blue-600 font-medium">
                 💡 Showing cached results to keep you shopping
+              </p>
+            )}
+          </motion.div>
+        )}
+
+        {/* Auto-retry mode messages */}
+        {autoRetryMode && (
+          <motion.div
+            className="text-secondary-500 text-sm space-y-2"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <p>We're working hard to get your products loaded!</p>
+            {showCachedData && (
+              <p className="text-blue-600 font-medium">
+                💡 Showing cached results while we reconnect
+              </p>
+            )}
+            {retryCount >= 2 && (
+              <p className="text-orange-600">
+                Connection seems slow, but we'll keep trying...
               </p>
             )}
           </motion.div>

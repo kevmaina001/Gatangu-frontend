@@ -3,7 +3,7 @@
         xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
   <!-- Homepage -->
   <url>
-    <loc>https://gatangu.com/</loc>
+    <loc>https://gatanguenterprise.com/</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
@@ -11,7 +11,7 @@
   
   <!-- Shop page -->
   <url>
-    <loc>https://gatangu.com/shop</loc>
+    <loc>https://gatanguenterprise.com/shop</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
@@ -19,7 +19,7 @@
   
   <!-- Search page -->
   <url>
-    <loc>https://gatangu.com/search</loc>
+    <loc>https://gatanguenterprise.com/search</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
@@ -27,126 +27,126 @@
 
   <!-- Category pages -->
   <url>
-    <loc>https://gatangu.com/category/lighters</loc>
+    <loc>https://gatanguenterprise.com/category/lighters</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://gatangu.com/category/groceries</loc>
+    <loc>https://gatanguenterprise.com/category/groceries</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://gatangu.com/category/personal-care</loc>
+    <loc>https://gatanguenterprise.com/category/personal-care</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://gatangu.com/category/flour-and-rice</loc>
+    <loc>https://gatanguenterprise.com/category/flour-and-rice</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://gatangu.com/category/hardware</loc>
+    <loc>https://gatanguenterprise.com/category/hardware</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://gatangu.com/category/fats-and-oils</loc>
+    <loc>https://gatanguenterprise.com/category/fats-and-oils</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://gatangu.com/category/baby-hygiene</loc>
+    <loc>https://gatanguenterprise.com/category/baby-hygiene</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://gatangu.com/category/animal-health</loc>
+    <loc>https://gatanguenterprise.com/category/animal-health</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://gatangu.com/category/food-additives</loc>
+    <loc>https://gatanguenterprise.com/category/food-additives</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://gatangu.com/category/bakery</loc>
+    <loc>https://gatanguenterprise.com/category/bakery</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://gatangu.com/category/farm-inputs</loc>
+    <loc>https://gatanguenterprise.com/category/farm-inputs</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://gatangu.com/category/spreads</loc>
+    <loc>https://gatanguenterprise.com/category/spreads</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://gatangu.com/category/lightings</loc>
+    <loc>https://gatanguenterprise.com/category/lightings</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://gatangu.com/category/stationery</loc>
+    <loc>https://gatanguenterprise.com/category/stationery</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://gatangu.com/category/beverages</loc>
+    <loc>https://gatanguenterprise.com/category/beverages</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://gatangu.com/category/wholesale</loc>
+    <loc>https://gatanguenterprise.com/category/wholesale</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://gatangu.com/category/milk</loc>
+    <loc>https://gatanguenterprise.com/category/milk</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
   
   <url>
-    <loc>https://gatangu.com/category/medicine</loc>
+    <loc>https://gatanguenterprise.com/category/medicine</loc>
     <lastmod>2024-12-19</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.8</priority>

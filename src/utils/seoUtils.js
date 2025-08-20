@@ -107,9 +107,9 @@ export const generateOrganizationSchema = () => {
       "availableLanguage": ["English", "Swahili"]
     },
     "sameAs": [
-      "https://facebook.com/gatangu",
-      "https://twitter.com/gatangu",
-      "https://instagram.com/gatangu"
+      "https://facebook.com/gatanguenterprise",
+      "https://twitter.com/gatanguenterprise", 
+      "https://instagram.com/gatanguenterprise"
     ]
   };
 };

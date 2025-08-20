@@ -33,19 +33,85 @@ import axios from '../services/api';
 import { getFinalImageURL, handleImageError } from '../utils/imageUtils';
 import { CATEGORY_DISPLAY } from '../utils/categories';
 import { ProductCache } from '../utils/cacheUtils';
+import useAutoRetry from '../hooks/useAutoRetry';
+import { getAdaptiveRetryConfig, globalRetryStats } from '../config/retryConfig';
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
   const [showCachedData, setShowCachedData] = useState(false);
-  const [retryAttempt, setRetryAttempt] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('featured');
   const [viewMode, setViewMode] = useState('grid');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
+
+  // Auto-retry fetch function
+  const fetchProductsWithRetry = async ({ signal, attemptNumber }) => {
+    // Check for cached data on first attempt only
+    if (attemptNumber === 0) {
+      const cachedProducts = ProductCache.getProducts();
+      if (cachedProducts) {
+        setProducts(cachedProducts);
+        setShowCachedData(true);
+        
+        // If cache is fresh, use it and skip network request
+        if (ProductCache.isProductsCacheFresh()) {
+          return cachedProducts;
+        }
+      }
+    }
+
+    // Make network request with abort signal
+    const response = await axios.getWithRetry('/products', { signal });
+    
+    // Update products and cache
+    setProducts(response.data);
+    setShowCachedData(false);
+    ProductCache.setProducts(response.data);
+    
+    return response.data;
+  };
+
+  // Get adaptive retry configuration
+  const retryConfig = getAdaptiveRetryConfig('PRODUCTS');
+
+  // Use auto-retry hook with adaptive configuration
+  const {
+    data: fetchedProducts,
+    loading,
+    error,
+    isRetrying,
+    retryCount,
+    retryStage,
+    manualRetry,
+    isInRetryMode,
+    nextRetryDelay
+  } = useAutoRetry(fetchProductsWithRetry, {
+    ...retryConfig,
+    onRetryAttempt: (attempt, error, delay) => {
+      console.log(`Retrying product fetch - attempt ${attempt}, next delay: ${delay}ms`);
+      globalRetryStats.recordAttempt(false, delay, attempt);
+    },
+    onMaxRetriesReached: (error) => {
+      console.error('Max retries reached for product fetch:', error);
+      globalRetryStats.recordAttempt(false, 0, retryConfig.maxRetries);
+      
+      // Check if we have cached data to fall back to
+      const cachedProducts = ProductCache.getProducts();
+      if (cachedProducts) {
+        setProducts(cachedProducts);
+        setShowCachedData(true);
+      }
+    }
+  });
+
+  // Update products when fetchedProducts changes
+  useEffect(() => {
+    if (fetchedProducts) {
+      setProducts(fetchedProducts);
+    }
+  }, [fetchedProducts]);
   
   const getIconForCategory = (categoryName) => {
     switch (categoryName) {
@@ -79,67 +145,6 @@ const ProductList = () => {
     color: cat.color.replace('bg-', '').replace('-500', '').replace('-400', '').replace('-100', '')
   }));
 
-  const fetchProducts = async (isRetry = false) => {
-    try {
-      // If not a retry, check for cached data first
-      if (!isRetry) {
-        const cachedProducts = ProductCache.getProducts();
-        if (cachedProducts) {
-          setProducts(cachedProducts);
-          setShowCachedData(true);
-          
-          // If cache is fresh (less than 2 minutes), skip network request
-          if (ProductCache.isProductsCacheFresh()) {
-            setLoading(false);
-            setError(null);
-            return;
-          }
-          
-          // Otherwise, show cached data while fetching fresh data in background
-          setLoading(true);
-        }
-      }
-
-      // Use enhanced API with retry logic
-      const response = await axios.getWithRetry('/products');
-      
-      // Update state with fresh data
-      setProducts(response.data);
-      setError(null);
-      setShowCachedData(false);
-      setRetryAttempt(0);
-      
-      // Cache the fresh data
-      ProductCache.setProducts(response.data);
-      
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      
-      // Check if we have cached data to fall back to
-      const cachedProducts = ProductCache.getProducts();
-      if (cachedProducts && !isRetry) {
-        setProducts(cachedProducts);
-        setShowCachedData(true);
-        setError('Unable to refresh products. Showing cached results.');
-      } else {
-        // Only show error if no cached data is available
-        setError(cachedProducts ? null : 'Having trouble loading products. Please check your connection.');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRetry = () => {
-    setRetryAttempt(prev => prev + 1);
-    setLoading(true);
-    setError(null);
-    fetchProducts(true);
-  };
-
-  useEffect(() => {
-    fetchProducts();
-  }, []);
 
   // Filter and sort products
   useEffect(() => {
@@ -527,7 +532,7 @@ const ProductList = () => {
               </div>
             </div>
             <motion.button
-              onClick={handleRetry}
+              onClick={manualRetry}
               className="text-blue-600 hover:text-blue-800 text-sm font-medium"
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
@@ -538,21 +543,29 @@ const ProductList = () => {
         )}
 
         {/* Content */}
-        {loading && !showCachedData ? (
+        {(loading || isInRetryMode) && !showCachedData ? (
           <EnhancedLoader 
-            isLoading={loading} 
-            hasError={false}
-            onRetry={handleRetry}
+            isLoading={loading || isRetrying}
+            hasError={error && !isInRetryMode}
+            onRetry={manualRetry}
             showCachedData={showCachedData}
             loadingText="Loading Our Fresh Products..."
+            // Auto-retry specific props
+            autoRetryMode={true}
+            isRetrying={isRetrying}
+            retryCount={retryCount}
+            retryStage={retryStage}
+            nextRetryDelay={nextRetryDelay}
+            maxRetries={retryConfig.maxRetries}
           />
-        ) : error && !showCachedData ? (
+        ) : error && !showCachedData && !isInRetryMode ? (
           <EnhancedLoader 
             isLoading={false} 
             hasError={true}
-            onRetry={handleRetry}
+            onRetry={manualRetry}
             showCachedData={showCachedData}
             errorMessage={error}
+            autoRetryMode={false}
           />
         ) : filteredProducts.length > 0 ? (
           <motion.div
