@@ -37,6 +37,11 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
+  // Only handle http(s) requests — Cache API rejects chrome-extension://, data:, etc.
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') {
+    return;
+  }
+
   // Handle different types of requests
   if (request.destination === 'image') {
     event.respondWith(handleImageRequest(request));
