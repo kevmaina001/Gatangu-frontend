@@ -5,8 +5,6 @@ import HeroSlider from '../components/HeroSlider';
 import SEO from '../components/SEO';
 import api from '../services/api';
 import 'swiper/css';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Pagination, Autoplay, Navigation } from 'swiper/modules';
 import 'swiper/css/pagination';
 import 'swiper/css/navigation';
 import { FaChevronRight, FaFire, FaTags, FaShoppingBag, FaPills, FaTools, FaBaby, FaAppleAlt, FaLightbulb, FaBreadSlice, FaOilCan, FaWineBottle, FaSeedling, FaClipboardList, FaCoffee, FaBoxOpen } from 'react-icons/fa';

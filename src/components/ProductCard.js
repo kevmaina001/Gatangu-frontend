@@ -7,8 +7,8 @@ import { getFinalImageURL, handleImageError } from '../utils/imageUtils';
 import LazyImage from './LazyImage';
 
 const ProductCard = ({ product }) => {
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const [imageError, setImageError] = useState(false);
+  const [, setImageLoaded] = useState(false);
+  const [, setImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
   const { addToCart } = useContext(CartContext);
 

@@ -4,9 +4,8 @@ import { motion } from 'framer-motion';
 import { 
   FaArrowLeft, 
   FaSort, 
-  FaTag, 
-  FaShoppingBag,
-  FaExclamationTriangle
+  FaTag,
+  FaShoppingBag
 } from 'react-icons/fa';
 import ProductCard from '../components/ProductCard';
 import EnhancedLoader from '../components/EnhancedLoader';

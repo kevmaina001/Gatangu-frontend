@@ -26,6 +26,7 @@ const VirtualizedProductGrid = ({ products, viewMode = 'grid' }) => {
     window.addEventListener('scroll', throttledScrollHandler);
     
     return () => window.removeEventListener('scroll', throttledScrollHandler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visibleItems, products.length]);
 
   const loadMoreItems = () => {

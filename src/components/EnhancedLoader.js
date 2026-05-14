@@ -85,6 +85,7 @@ const EnhancedLoader = ({
     });
 
     return () => timers.forEach(timer => clearTimeout(timer));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading, isRetrying, autoRetryMode, retryStage]);
 
   // In auto-retry mode, don't show error UI - keep user in loading state

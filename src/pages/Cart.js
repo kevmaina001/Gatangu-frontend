@@ -6,8 +6,6 @@ import {
   FaPlus, 
   FaMinus, 
   FaArrowLeft,
-  FaLock,
-  FaUserPlus,
   FaCheckCircle
 } from 'react-icons/fa';
 import { useCart } from '../context/CartContext';
@@ -121,6 +119,7 @@ const CartPage = () => {
     }
   };
 
+  // eslint-disable-next-line no-unused-vars
   const handlePlaceOrder = () => {
     if (!user) {
       navigate('/register', { state: { from: '/cart' } });

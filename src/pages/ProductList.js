@@ -6,10 +6,8 @@ import {
   FaSearch,
   FaTh,
   FaList,
-  FaStar,
   FaTag,
   FaFire,
-  FaLeaf,
   FaFilter,
   FaTimes,
   FaPills,
@@ -25,12 +23,10 @@ import {
   FaCoffee,
   FaBoxOpen
 } from 'react-icons/fa';
-import ProductCard from '../components/ProductCard';
 import VirtualizedProductGrid from '../components/VirtualizedProductGrid';
 import EnhancedLoader from '../components/EnhancedLoader';
 import SEO from '../components/SEO';
 import axios from '../services/api';
-import { getFinalImageURL, handleImageError } from '../utils/imageUtils';
 import { CATEGORY_DISPLAY } from '../utils/categories';
 import { ProductCache } from '../utils/cacheUtils';
 import useAutoRetry from '../hooks/useAutoRetry';
@@ -187,15 +183,8 @@ const ProductList = () => {
     }
 
     setFilteredProducts(filtered);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [products, searchQuery, selectedCategory, sortBy]);
-
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('en-KE', {
-      style: 'currency',
-      currency: 'KES',
-      minimumFractionDigits: 0,
-    }).format(price);
-  };
 
   return (
     <>
