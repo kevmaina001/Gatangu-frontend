@@ -9,6 +9,7 @@ const AddProduct = () => {
     quantityScale: '',
     description: '',
     image: null,
+    featured: false,
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState({ text: '', type: '' });
@@ -48,6 +49,7 @@ const AddProduct = () => {
     formData.append('category', productData.category);
     formData.append('quantityScale', productData.quantityScale);
     formData.append('description', productData.description);
+    formData.append('featured', productData.featured);
     formData.append('image', productData.image);
 
     try {
@@ -67,6 +69,7 @@ const AddProduct = () => {
           quantityScale: '',
           description: '',
           image: null,
+          featured: false,
         });
         setImagePreview(null);
       } else {
@@ -166,6 +169,21 @@ const AddProduct = () => {
             className="w-full px-4 py-2 border rounded-md"
             rows="3"
           />
+        </div>
+        <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            id="featured"
+            name="featured"
+            checked={productData.featured}
+            onChange={(e) =>
+              setProductData((prevData) => ({ ...prevData, featured: e.target.checked }))
+            }
+            className="h-4 w-4"
+          />
+          <label htmlFor="featured" className="text-gray-700">
+            Show on landing page (Featured)
+          </label>
         </div>
         <div>
           <label htmlFor="image" className="block text-gray-700">Upload Image</label>

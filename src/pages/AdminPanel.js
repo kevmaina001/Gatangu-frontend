@@ -346,6 +346,7 @@ const ADMIN_ID = '674e4b8c22fc2df1f90d95ae'; // Hardcoded Admin User ID
                   <th className="border border-gray-300 p-2 text-left">Name</th>
                   <th className="border border-gray-300 p-2 text-left">Price</th>
                   <th className="border border-gray-300 p-2 text-left">Category</th>
+                  <th className="border border-gray-300 p-2 text-left">Featured</th>
                   <th className="border border-gray-300 p-2 text-left">Actions</th>
                 </tr>
               </thead>
@@ -355,6 +356,13 @@ const ADMIN_ID = '674e4b8c22fc2df1f90d95ae'; // Hardcoded Admin User ID
                     <td className="border border-gray-300 p-2">{product.name}</td>
                     <td className="border border-gray-300 p-2">Ksh{product.price}</td>
                     <td className="border border-gray-300 p-2">{product.category}</td>
+                    <td className="border border-gray-300 p-2">
+                      {product.featured ? (
+                        <span className="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Yes</span>
+                      ) : (
+                        <span className="text-gray-400 text-xs">No</span>
+                      )}
+                    </td>
                     <td className="border border-gray-300 p-2">
                       <button
                         onClick={() => openEditModal(product)}
@@ -392,6 +400,15 @@ const ADMIN_ID = '674e4b8c22fc2df1f90d95ae'; // Hardcoded Admin User ID
                   onChange={(e) => setEditData({ ...editData, price: e.target.value })}
                   className="border p-2 w-full mb-2"
                 />
+                <label className="flex items-center space-x-2 mb-3">
+                  <input
+                    type="checkbox"
+                    checked={!!editData.featured}
+                    onChange={(e) => setEditData({ ...editData, featured: e.target.checked })}
+                    className="h-4 w-4"
+                  />
+                  <span>Featured (show on landing page)</span>
+                </label>
                 <div className="flex justify-end">
                   <button onClick={closeEditModal} className="bg-gray-500 text-white px-4 py-2 mr-2">
                     Cancel

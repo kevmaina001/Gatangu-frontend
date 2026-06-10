@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  FaShoppingBag, 
-  FaSort, 
+import {
+  FaShoppingBag,
+  FaSort,
   FaSearch,
   FaTh,
   FaList,
@@ -29,166 +29,137 @@ import SEO from '../components/SEO';
 import axios from '../services/api';
 import { CATEGORY_DISPLAY } from '../utils/categories';
 import { ProductCache } from '../utils/cacheUtils';
-import useAutoRetry from '../hooks/useAutoRetry';
-import { getAdaptiveRetryConfig, globalRetryStats } from '../config/retryConfig';
+
+const PAGE_SIZE = 20;
+
+const getIconForCategory = (categoryName) => {
+  switch (categoryName) {
+    case 'All': return FaShoppingBag;
+    case 'Lighters': return FaFire;
+    case 'Groceries': return FaAppleAlt;
+    case 'Personal Care': return FaPills;
+    case 'Flour & Rice': return FaBreadSlice;
+    case 'Hardware': return FaTools;
+    case 'Fats & Oils': return FaOilCan;
+    case 'Baby Hygiene': return FaBaby;
+    case 'Animal Health': return FaPills;
+    case 'Food Additives': return FaClipboardList;
+    case 'Bakery': return FaBreadSlice;
+    case 'Farm Inputs': return FaSeedling;
+    case 'Spreads': return FaOilCan;
+    case 'Lightings': return FaLightbulb;
+    case 'Stationery': return FaClipboardList;
+    case 'Beverages': return FaCoffee;
+    case 'Wholesale': return FaBoxOpen;
+    case 'Milk': return FaWineBottle;
+    case 'Medicine': return FaPills;
+    default: return FaTag;
+  }
+};
+
+// Category options use the category NAME as their value ('all' = no filter).
+const categories = CATEGORY_DISPLAY.map(cat => ({
+  name: cat.name,
+  value: cat.name === 'All' ? 'all' : cat.name,
+  icon: getIconForCategory(cat.name),
+}));
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
-  const [filteredProducts, setFilteredProducts] = useState([]);
   const [showCachedData, setShowCachedData] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('featured');
   const [viewMode, setViewMode] = useState('grid');
   const [showMobileFilters, setShowMobileFilters] = useState(false);
 
-  // Auto-retry fetch function
-  const fetchProductsWithRetry = async ({ signal, attemptNumber }) => {
-    // Check for cached data on first attempt only
-    if (attemptNumber === 0) {
-      const cachedProducts = ProductCache.getProducts();
-      if (cachedProducts) {
-        setProducts(cachedProducts);
-        setShowCachedData(true);
-        
-        // If cache is fresh, use it and skip network request
-        if (ProductCache.isProductsCacheFresh()) {
-          return cachedProducts;
-        }
-      }
-    }
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [error, setError] = useState(null);
 
-    // Make network request with abort signal
-    const response = await axios.getWithRetry('/products', { signal });
-    
-    // Update products and cache
-    setProducts(response.data);
-    setShowCachedData(false);
-    ProductCache.setProducts(response.data);
-    
-    return response.data;
-  };
+  const hasMore = products.length < total;
+  const isDefaultView =
+    selectedCategory === 'all' && !debouncedSearch && sortBy === 'featured';
 
-  // Get adaptive retry configuration
-  const retryConfig = getAdaptiveRetryConfig('PRODUCTS');
+  // Debounce the search box so we don't fire a request per keystroke
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 400);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
-  // Use auto-retry hook with adaptive configuration
-  const {
-    data: fetchedProducts,
-    loading,
-    error,
-    isRetrying,
-    retryCount,
-    retryStage,
-    manualRetry,
-    isInRetryMode,
-    nextRetryDelay
-  } = useAutoRetry(fetchProductsWithRetry, {
-    ...retryConfig,
-    onRetryAttempt: (attempt, error, delay) => {
-      console.log(`Retrying product fetch - attempt ${attempt}, next delay: ${delay}ms`);
-      globalRetryStats.recordAttempt(false, delay, attempt);
+  // Build query params for the current filter/sort/search state
+  const buildParams = useCallback(
+    (pageNum) => {
+      const params = { page: pageNum, limit: PAGE_SIZE };
+      if (selectedCategory !== 'all') params.category = selectedCategory;
+      if (debouncedSearch) params.search = debouncedSearch;
+      if (sortBy && sortBy !== 'featured') params.sort = sortBy;
+      return params;
     },
-    onMaxRetriesReached: (error) => {
-      console.error('Max retries reached for product fetch:', error);
-      globalRetryStats.recordAttempt(false, 0, retryConfig.maxRetries);
-      
-      // Check if we have cached data to fall back to
-      const cachedProducts = ProductCache.getProducts();
-      if (cachedProducts) {
-        setProducts(cachedProducts);
-        setShowCachedData(true);
-      }
-    }
-  });
+    [selectedCategory, debouncedSearch, sortBy]
+  );
 
-  // Update products when fetchedProducts changes
+  // Fetch a page. append=true keeps existing items (Load More); false replaces.
+  const fetchPage = useCallback(
+    async (pageNum, append) => {
+      if (append) setLoadingMore(true);
+      else setLoading(true);
+      setError(null);
+
+      try {
+        const res = await axios.getWithRetry('/products', { params: buildParams(pageNum) });
+        const data = res.data;
+        // Backend returns { total, products } when paginated, or a bare array otherwise
+        const items = Array.isArray(data) ? data : data.products || [];
+        const totalCount = Array.isArray(data) ? items.length : data.total ?? items.length;
+
+        setTotal(totalCount);
+        setProducts((prev) => (append ? [...prev, ...items] : items));
+        setPage(pageNum);
+        setShowCachedData(false);
+
+        // Cache the first page of the default view for offline fallback
+        if (!append && pageNum === 1 && isDefaultView) {
+          ProductCache.setProducts(items);
+        }
+      } catch (err) {
+        console.error('Failed to fetch products:', err);
+        setError(err);
+
+        // Fall back to cached default-view products if we have them
+        if (!append && pageNum === 1) {
+          const cached = ProductCache.getProducts();
+          if (cached && cached.length) {
+            setProducts(cached);
+            setShowCachedData(true);
+          }
+        }
+      } finally {
+        if (append) setLoadingMore(false);
+        else setLoading(false);
+      }
+    },
+    [buildParams, isDefaultView]
+  );
+
+  // (Re)load page 1 whenever the filter/search/sort changes
   useEffect(() => {
-    if (fetchedProducts) {
-      setProducts(fetchedProducts);
-    }
-  }, [fetchedProducts]);
-  
-  const getIconForCategory = (categoryName) => {
-    switch (categoryName) {
-      case 'All': return FaShoppingBag;
-      case 'Lighters': return FaFire;
-      case 'Groceries': return FaAppleAlt;
-      case 'Personal Care': return FaPills;
-      case 'Flour & Rice': return FaBreadSlice;
-      case 'Hardware': return FaTools;
-      case 'Fats & Oils': return FaOilCan;
-      case 'Baby Hygiene': return FaBaby;
-      case 'Animal Health': return FaPills;
-      case 'Food Additives': return FaClipboardList;
-      case 'Bakery': return FaBreadSlice;
-      case 'Farm Inputs': return FaSeedling;
-      case 'Spreads': return FaOilCan;
-      case 'Lightings': return FaLightbulb;
-      case 'Stationery': return FaClipboardList;
-      case 'Beverages': return FaCoffee;
-      case 'Wholesale': return FaBoxOpen;
-      case 'Milk': return FaWineBottle;
-      case 'Medicine': return FaPills;
-      default: return FaTag;
-    }
+    fetchPage(1, false);
+  }, [fetchPage]);
+
+  const handleLoadMore = () => {
+    if (!loadingMore && hasMore) fetchPage(page + 1, true);
   };
 
-  const categories = CATEGORY_DISPLAY.map(cat => ({
-    id: cat.name.toLowerCase().replace(/\s+/g, '-').replace(/&/g, 'and'),
-    name: cat.name,
-    icon: getIconForCategory(cat.name),
-    color: cat.color.replace('bg-', '').replace('-500', '').replace('-400', '').replace('-100', '')
-  }));
-
-
-  // Filter and sort products
-  useEffect(() => {
-    let filtered = [...products];
-
-    // Filter by search query
-    if (searchQuery) {
-      filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Filter by category
-    if (selectedCategory !== 'all') {
-      // Find the actual category name from the id
-      const selectedCategoryObj = categories.find(cat => cat.id === selectedCategory);
-      if (selectedCategoryObj) {
-        filtered = filtered.filter(product =>
-          product.category && product.category === selectedCategoryObj.name
-        );
-      }
-    }
-
-    // Sort products
-    switch (sortBy) {
-      case 'price-low':
-        filtered.sort((a, b) => a.price - b.price);
-        break;
-      case 'price-high':
-        filtered.sort((a, b) => b.price - a.price);
-        break;
-      case 'name':
-        filtered.sort((a, b) => a.name.localeCompare(b.name));
-        break;
-      case 'newest':
-        filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        break;
-      default: // featured
-        break;
-    }
-
-    setFilteredProducts(filtered);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [products, searchQuery, selectedCategory, sortBy]);
+  const manualRetry = () => fetchPage(1, false);
 
   return (
     <>
-      <SEO 
+      <SEO
         title="Shop All Products - Gatangu | Online Shopping Kenya"
         description="Browse our complete collection of fresh groceries, personal care, and household items. Quality products with fast delivery across Kenya. Shop now at Gatangu!"
         keywords="shop all products, online shopping kenya, groceries, household items, personal care, gatangu shop, buy online kenya"
@@ -222,7 +193,7 @@ const ProductList = () => {
               </p>
             </div>
           </div>
-          
+
           {/* Stats */}
           <motion.div
             className="flex justify-center items-center space-x-4 sm:space-x-8 mb-6 md:mb-8"
@@ -231,7 +202,7 @@ const ProductList = () => {
             transition={{ delay: 0.3, duration: 0.6 }}
           >
             <div className="text-center">
-              <div className="text-xl sm:text-2xl font-bold text-primary-600">{products.length}+</div>
+              <div className="text-xl sm:text-2xl font-bold text-primary-600">{total}+</div>
               <div className="text-xs sm:text-sm text-secondary-500">Products</div>
             </div>
             <div className="w-px h-6 sm:h-8 bg-secondary-200"></div>
@@ -282,10 +253,10 @@ const ProductList = () => {
               <FaFilter className="text-sm" />
               Filters
             </button>
-            
+
             <div className="flex items-center gap-3">
               <span className="text-sm text-secondary-600">
-                {filteredProducts.length} found
+                {total} found
               </span>
               <div className="flex items-center bg-white rounded-lg border border-secondary-200 p-1">
                 <button
@@ -318,11 +289,11 @@ const ProductList = () => {
             <div className="flex flex-wrap gap-3 mb-6">
               {categories.map((category) => {
                 const IconComponent = category.icon;
-                const isSelected = selectedCategory === category.id;
+                const isSelected = selectedCategory === category.value;
                 return (
                   <motion.button
-                    key={category.id}
-                    onClick={() => setSelectedCategory(category.id)}
+                    key={category.value}
+                    onClick={() => setSelectedCategory(category.value)}
                     className={`flex items-center px-4 py-2 rounded-xl font-medium transition-all ${
                       isSelected
                         ? 'bg-primary-500 text-white shadow-medium'
@@ -354,12 +325,12 @@ const ProductList = () => {
                   <option value="newest">Newest First</option>
                 </select>
               </div>
-              
+
               <div className="flex items-center gap-4">
                 <span className="text-secondary-600 font-medium">
-                  {filteredProducts.length} product{filteredProducts.length !== 1 ? 's' : ''} found
+                  {total} product{total !== 1 ? 's' : ''} found
                 </span>
-                
+
                 <div className="flex items-center bg-secondary-100 rounded-lg p-1">
                   <button
                     onClick={() => setViewMode('grid')}
@@ -399,7 +370,7 @@ const ProductList = () => {
                 exit={{ opacity: 0 }}
                 onClick={() => setShowMobileFilters(false)}
               />
-              
+
               {/* Drawer */}
               <motion.div
                 className="fixed inset-x-0 bottom-0 bg-white rounded-t-3xl shadow-2xl z-50 max-h-[80vh] overflow-y-auto md:hidden"
@@ -452,12 +423,12 @@ const ProductList = () => {
                     <div className="space-y-2">
                       {categories.map((category) => {
                         const IconComponent = category.icon;
-                        const isSelected = selectedCategory === category.id;
+                        const isSelected = selectedCategory === category.value;
                         return (
                           <button
-                            key={category.id}
+                            key={category.value}
                             onClick={() => {
-                              setSelectedCategory(category.id);
+                              setSelectedCategory(category.value);
                               setShowMobileFilters(false);
                             }}
                             className={`w-full flex items-center px-4 py-3 rounded-lg transition-colors ${
@@ -532,38 +503,32 @@ const ProductList = () => {
         )}
 
         {/* Content */}
-        {(loading || isInRetryMode) && !showCachedData ? (
-          <EnhancedLoader 
-            isLoading={loading || isRetrying}
-            hasError={error && !isInRetryMode}
+        {loading && !showCachedData ? (
+          <EnhancedLoader
+            isLoading={true}
+            hasError={false}
             onRetry={manualRetry}
             showCachedData={showCachedData}
             loadingText="Loading Our Fresh Products..."
-            // Auto-retry specific props
-            autoRetryMode={true}
-            isRetrying={isRetrying}
-            retryCount={retryCount}
-            retryStage={retryStage}
-            nextRetryDelay={nextRetryDelay}
-            maxRetries={retryConfig.maxRetries}
+            autoRetryMode={false}
           />
-        ) : error && !showCachedData && !isInRetryMode ? (
-          <EnhancedLoader 
-            isLoading={false} 
+        ) : error && !showCachedData && products.length === 0 ? (
+          <EnhancedLoader
+            isLoading={false}
             hasError={true}
             onRetry={manualRetry}
             showCachedData={showCachedData}
-            errorMessage={error}
+            errorMessage="We're having trouble reaching our servers. Please try again."
             autoRetryMode={false}
           />
-        ) : filteredProducts.length > 0 ? (
+        ) : products.length > 0 ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.5 }}
           >
             {/* Featured Products Banner */}
-            {selectedCategory === 'all' && (
+            {isDefaultView && (
               <motion.div
                 className="bg-gradient-to-r from-accent-500 to-primary-500 rounded-2xl p-6 mb-8 text-white"
                 initial={{ opacity: 0, scale: 0.95 }}
@@ -590,10 +555,31 @@ const ProductList = () => {
             )}
 
             {/* Products Grid */}
-            <VirtualizedProductGrid 
-              products={filteredProducts} 
+            <VirtualizedProductGrid
+              products={products}
               viewMode={viewMode}
             />
+
+            {/* Load More */}
+            {hasMore && (
+              <div className="flex justify-center mt-8">
+                <motion.button
+                  onClick={handleLoadMore}
+                  disabled={loadingMore}
+                  className={`px-8 py-3 rounded-xl font-medium transition-colors ${
+                    loadingMore
+                      ? 'bg-secondary-200 text-secondary-500 cursor-not-allowed'
+                      : 'bg-primary-500 hover:bg-primary-600 text-white'
+                  }`}
+                  whileHover={loadingMore ? {} : { scale: 1.05 }}
+                  whileTap={loadingMore ? {} : { scale: 0.95 }}
+                >
+                  {loadingMore
+                    ? 'Loading...'
+                    : `Load More (${products.length} of ${total})`}
+                </motion.button>
+              </div>
+            )}
           </motion.div>
         ) : (
           <motion.div

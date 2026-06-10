@@ -48,13 +48,14 @@ const CategoryProducts = () => {
       }
     }
 
-    // Make network request with abort signal
-    const response = await axios.getWithRetry('/products', { signal });
-    const filtered = response.data.filter(
-      (product) =>
-        product.category && product.category.toLowerCase() === categoryName.toLowerCase()
-    );
-    
+    // Make network request with abort signal — server-side category filtering
+    // so we only download this category's items, not the whole catalog.
+    const response = await axios.getWithRetry('/products', {
+      signal,
+      params: { category: categoryName },
+    });
+    const filtered = response.data;
+
     // Update products and cache
     setProducts(filtered);
     setShowCachedData(false);
