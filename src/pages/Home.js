@@ -16,6 +16,9 @@ import sliderImage from '../Assets/images/slider.jpg';
 import slider1Image from '../Assets/images/slider1.jpg';
 import slider2Image from '../Assets/images/slider2.png';
 
+// Number of latest products to surface in the rolling "Featured" queue.
+const FEATURED_LIMIT = 20;
+
 const getIconForCategory = (categoryName) => {
   switch (categoryName) {
     case 'Lighters': return FaFire;
@@ -40,7 +43,7 @@ const getIconForCategory = (categoryName) => {
   }
 };
 
-// Color lookup from the curated display list (falls back to primary)
+// Color lookup from the curated display list (fallback when no image exists)
 const COLOR_BY_NAME = CATEGORY_DISPLAY.reduce((acc, cat) => {
   acc[cat.name] = cat.color;
   return acc;
@@ -83,16 +86,17 @@ const Home = () => {
     },
   ];
 
-  // Build the category list to render. Prefer live counts from the API;
-  // fall back to the curated display list if that endpoint is unavailable.
+  // Build the category list to render. Prefer live data (counts + image) from
+  // the API; fall back to the curated display list if it's unavailable.
   const buildCategories = (apiCategories) => {
     const source = apiCategories && apiCategories.length
       ? apiCategories
-      : CATEGORY_DISPLAY.filter(c => c.name !== 'All').map(c => ({ name: c.name, count: null }));
+      : CATEGORY_DISPLAY.filter(c => c.name !== 'All').map(c => ({ name: c.name, count: null, image: null }));
 
     return source.map(cat => ({
       name: cat.name,
       count: cat.count,
+      image: cat.image || null,
       icon: getIconForCategory(cat.name),
       color: COLOR_BY_NAME[cat.name] || 'bg-primary-500',
     }));
@@ -102,9 +106,9 @@ const Home = () => {
     const fetchHomeData = async () => {
       setLoading(true);
       try {
-        // Only fetch featured products + category list — never the full catalog.
+        // Latest products (rolling queue) + category list. Never the full catalog.
         const [featuredRes, categoriesRes] = await Promise.allSettled([
-          api.get('/products', { params: { featured: true, limit: 10 } }),
+          api.get('/products', { params: { limit: FEATURED_LIMIT } }),
           api.get('/products/categories'),
         ]);
 
@@ -155,29 +159,34 @@ const Home = () => {
           </div>
         </motion.div>
 
-        {/* Categories Section — primary landing content */}
+        {/* Categories Section — primary, full-width landing content */}
         <motion.div
-          className="mb-12"
+          className="mb-16"
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2, duration: 0.6 }}
         >
           <div className="container mx-auto px-4">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl md:text-2xl font-bold text-secondary-800 flex items-center">
-                <FaTags className="mr-3 text-primary-500" />
-                Shop by Category
-              </h2>
+            <div className="flex items-end justify-between mb-8">
+              <div>
+                <h2 className="text-2xl md:text-4xl font-extrabold text-secondary-800 flex items-center tracking-tight">
+                  <FaTags className="mr-3 text-primary-500" />
+                  Shop by Category
+                </h2>
+                <p className="text-secondary-500 mt-2 text-sm md:text-base">
+                  Browse our full range — tap a category to see everything inside
+                </p>
+              </div>
               <Link
                 to="/shop"
-                className="text-primary-600 hover:text-primary-700 font-medium flex items-center text-sm"
+                className="hidden sm:flex text-primary-600 hover:text-primary-700 font-semibold items-center text-sm md:text-base whitespace-nowrap"
               >
                 Browse All <FaChevronRight className="ml-1 text-xs" />
               </Link>
             </div>
 
-            {/* Category Cards Grid */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 md:gap-4">
+            {/* Bold image-based category cards */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
               {categories.map((category, index) => {
                 const IconComponent = category.icon;
                 return (
@@ -189,19 +198,41 @@ const Home = () => {
                   >
                     <Link
                       to={`/category/${encodeURIComponent(category.name)}`}
-                      className="group flex flex-col items-center justify-center text-center p-4 bg-white rounded-2xl border border-secondary-100 shadow-soft hover:shadow-medium hover:border-primary-200 transition-all h-full"
+                      className="group relative block rounded-2xl overflow-hidden shadow-soft hover:shadow-strong transition-all aspect-[4/3]"
                     >
-                      <div className={`w-14 h-14 ${category.color} rounded-2xl flex items-center justify-center mb-3 text-white group-hover:scale-105 transition-transform`}>
-                        <IconComponent className="text-xl" />
-                      </div>
-                      <span className="text-sm font-semibold text-secondary-800 leading-tight">
-                        {category.name}
-                      </span>
-                      {category.count != null && (
-                        <span className="text-xs text-secondary-500 mt-1">
-                          {category.count} item{category.count !== 1 ? 's' : ''}
-                        </span>
+                      {/* Representative image (latest item) or colored fallback */}
+                      {category.image ? (
+                        <img
+                          src={category.image}
+                          alt={category.name}
+                          loading="lazy"
+                          className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                      ) : (
+                        <div className={`absolute inset-0 ${category.color} flex items-center justify-center`}>
+                          <IconComponent className="text-white text-5xl opacity-80" />
+                        </div>
                       )}
+
+                      {/* Dark gradient for legible text */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
+
+                      {/* Category icon badge */}
+                      <div className={`absolute top-3 left-3 w-9 h-9 ${category.color} rounded-xl flex items-center justify-center text-white shadow-medium`}>
+                        <IconComponent className="text-base" />
+                      </div>
+
+                      {/* Label */}
+                      <div className="absolute bottom-0 left-0 right-0 p-3 md:p-4">
+                        <h3 className="text-white font-bold text-base md:text-xl leading-tight drop-shadow-md">
+                          {category.name}
+                        </h3>
+                        {category.count != null && (
+                          <p className="text-white/85 text-xs md:text-sm mt-0.5">
+                            {category.count} item{category.count !== 1 ? 's' : ''}
+                          </p>
+                        )}
+                      </div>
                     </Link>
                   </motion.div>
                 );
@@ -210,7 +241,7 @@ const Home = () => {
           </div>
         </motion.div>
 
-        {/* Featured Products Section */}
+        {/* Featured Products Section — rolling queue of the latest items */}
         <motion.div
           className="mb-8"
           initial={{ y: 50, opacity: 0 }}
@@ -234,7 +265,7 @@ const Home = () => {
             {/* Loading State */}
             {loading && (
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 md:gap-6">
-                {[...Array(5)].map((_, index) => (
+                {[...Array(10)].map((_, index) => (
                   <div key={index} className="animate-pulse">
                     <div className="bg-secondary-200 rounded-2xl aspect-square mb-4"></div>
                     <div className="h-4 bg-secondary-200 rounded mb-2"></div>
@@ -251,7 +282,7 @@ const Home = () => {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
               >
-                <div className="text-error text-lg mb-4">Failed to load featured products</div>
+                <div className="text-error text-lg mb-4">Failed to load products</div>
                 <button
                   onClick={() => window.location.reload()}
                   className="bg-primary-500 hover:bg-primary-600 text-white px-6 py-3 rounded-xl font-medium transition-colors"
@@ -269,7 +300,7 @@ const Home = () => {
                     key={product._id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.05, duration: 0.3 }}
+                    transition={{ delay: index * 0.04, duration: 0.3 }}
                   >
                     <ProductCard product={product} />
                   </motion.div>
@@ -277,7 +308,7 @@ const Home = () => {
               </div>
             )}
 
-            {/* Empty Featured State — prompt to browse categories */}
+            {/* Empty State */}
             {!loading && !error && featuredProducts.length === 0 && (
               <motion.div
                 className="text-center py-10 bg-white rounded-2xl border border-secondary-100"
