@@ -9,6 +9,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import BottomNavigation from './components/BottomNavigation';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
+import BackendWakeup from './components/BackendWakeup';
 // import PWATestButton from './components/PWATestButton'; // Uncomment for testing
 
 // Lazy load pages for better performance
@@ -58,6 +59,8 @@ const App = () => {
       <Router>
         <AuthProvider>
           <CartProvider>
+            {/* Cold-start overlay: shows only if the backend is slow to wake */}
+            <BackendWakeup />
             <div className="flex flex-col min-h-screen">
               {/* Navbar */}
               <Navbar />
