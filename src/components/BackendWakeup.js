@@ -68,13 +68,9 @@ const BackendWakeup = () => {
         >
           <div className="text-center px-6 max-w-sm">
             <div className="w-16 h-16 border-4 border-primary-500 border-t-transparent rounded-full animate-spin mx-auto mb-6" />
-            <h2 className="text-xl font-bold text-secondary-800 mb-2">
-              Waking up the store…
+            <h2 className="text-xl font-bold text-secondary-800">
+              Gatangu Enterprise
             </h2>
-            <p className="text-secondary-600 leading-relaxed">
-              Our server was resting to save energy. This first load can take a
-              few seconds — thanks for your patience!
-            </p>
           </div>
         </motion.div>
       )}
