@@ -232,7 +232,7 @@ Thank you for choosing Gatangu Enterprise.`;
                         {/* Product Image */}
                         <div className="w-24 h-24 bg-secondary-100 rounded-xl overflow-hidden flex-shrink-0">
                           <img
-                            src={getFinalImageURL(item.image)}
+                            src={getFinalImageURL(item.image, 200)}
                             alt={item.name}
                             className="w-full h-full object-cover"
                             onError={handleImageError}

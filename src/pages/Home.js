@@ -10,11 +10,12 @@ import 'swiper/css/navigation';
 import { FaChevronRight, FaFire, FaTags, FaShoppingBag, FaPills, FaTools, FaBaby, FaAppleAlt, FaLightbulb, FaBreadSlice, FaOilCan, FaWineBottle, FaSeedling, FaClipboardList, FaCoffee, FaBoxOpen } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import { CATEGORY_DISPLAY } from '../utils/categories';
+import { getOptimizedCloudinaryURL } from '../utils/imageUtils';
 
 // Import slider images from assets
 import sliderImage from '../Assets/images/slider.jpg';
 import slider1Image from '../Assets/images/slider1.jpg';
-import slider2Image from '../Assets/images/slider2.png';
+import slider2Image from '../Assets/images/slider2.jpg';
 
 // Number of latest products to surface in the rolling "Featured" queue.
 const FEATURED_LIMIT = 20;
@@ -203,7 +204,7 @@ const Home = () => {
                       {/* Representative image (latest item) or colored fallback */}
                       {category.image ? (
                         <img
-                          src={category.image}
+                          src={getOptimizedCloudinaryURL(category.image, 600)}
                           alt={category.name}
                           loading="lazy"
                           className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"

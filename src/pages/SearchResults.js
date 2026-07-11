@@ -17,13 +17,13 @@ const SearchResults = () => {
     const fetchSearchResults = async () => {
       setLoading(true);
       try {
-        const response = await api.get('/products');
-        const filteredResults = response.data.filter((product) =>
-          product.name.toLowerCase().includes(query.toLowerCase())
-        );
-        
+        // Server-side name search instead of downloading the whole catalog
+        const response = await api.get('/products', {
+          params: { search: query, limit: 100 },
+        });
+
         // Apply sorting
-        let sortedResults = [...filteredResults];
+        let sortedResults = [...response.data];
         switch (sortBy) {
           case 'price-low':
             sortedResults.sort((a, b) => a.price - b.price);

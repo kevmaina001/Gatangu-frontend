@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import ProductCard from './ProductCard';
+import { getFinalImageURL, handleImageError } from '../utils/imageUtils';
 
 const VirtualizedProductGrid = ({ products, viewMode = 'grid' }) => {
   const [visibleItems, setVisibleItems] = useState(20); // Show 20 items initially
@@ -77,10 +78,11 @@ const VirtualizedProductGrid = ({ products, viewMode = 'grid' }) => {
               <div className="bg-white rounded-2xl shadow-soft p-6 flex items-center space-x-6">
                 <div className="w-24 h-24 bg-secondary-100 rounded-xl overflow-hidden flex-shrink-0">
                   <img
-                    src={product.image}
+                    src={getFinalImageURL(product.image, 200)}
                     alt={product.name}
                     className="w-full h-full object-cover"
                     loading="lazy"
+                    onError={handleImageError}
                   />
                 </div>
                 <div className="flex-1">

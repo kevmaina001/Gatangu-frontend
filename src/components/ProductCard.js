@@ -12,7 +12,9 @@ const ProductCard = ({ product }) => {
   const [isHovered, setIsHovered] = useState(false);
   const { addToCart } = useContext(CartContext);
 
-  const finalImageURL = getFinalImageURL(product.image);
+  // Cards render at ~300px; request a 600px-wide auto-format/auto-quality
+  // rendition so 2x screens stay sharp without downloading the full upload.
+  const finalImageURL = getFinalImageURL(product.image, 600);
 
   const handleAddToCart = (e) => {
     e.preventDefault();

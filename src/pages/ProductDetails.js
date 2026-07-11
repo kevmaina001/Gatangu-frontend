@@ -199,7 +199,8 @@ const ProductDetails = () => {
     );
   }
 
-  const productImages = getProductImages(product.image);
+  // Detail view renders up to ~600px wide; 1000px covers 2x screens.
+  const productImages = getProductImages(product.image, 1000);
 
   return (
     <>
