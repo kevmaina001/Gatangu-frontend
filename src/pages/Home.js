@@ -339,12 +339,16 @@ const Home = () => {
         >
           <div className="container mx-auto px-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                { icon: FaShoppingBag, title: '1000+', subtitle: 'Products' },
-                { icon: FaTags, title: '50+', subtitle: 'Categories' },
-                { icon: FaFire, title: '24/7', subtitle: 'Support' },
-                { icon: FaChevronRight, title: 'Fast', subtitle: 'Delivery' },
-              ].map((stat, index) => {
+              {(() => {
+                // Real numbers from the live category data instead of made-up claims
+                const productTotal = categories.reduce((sum, c) => sum + (c.count || 0), 0);
+                return [
+                  { icon: FaShoppingBag, title: productTotal ? `${productTotal}+` : 'Quality', subtitle: 'Products' },
+                  { icon: FaTags, title: categories.length ? `${categories.length}` : 'Many', subtitle: 'Categories' },
+                  { icon: FaFire, title: 'WhatsApp', subtitle: 'Ordering' },
+                  { icon: FaChevronRight, title: 'Fast', subtitle: 'Delivery' },
+                ];
+              })().map((stat, index) => {
                 const IconComponent = stat.icon;
                 return (
                   <motion.div

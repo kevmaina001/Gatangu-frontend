@@ -1,7 +1,8 @@
 import React, { useState, useContext } from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { FaShoppingCart, FaHeart, FaEye } from 'react-icons/fa';
+import { FaShoppingCart } from 'react-icons/fa';
+import { toast } from 'react-toastify';
 import { CartContext } from '../context/CartContext';
 import { getFinalImageURL, handleImageError } from '../utils/imageUtils';
 import LazyImage from './LazyImage';
@@ -20,6 +21,7 @@ const ProductCard = ({ product }) => {
     e.preventDefault();
     e.stopPropagation();
     addToCart(product);
+    toast.success(`${product.name} added to cart`);
   };
 
   const formatPrice = (price) => {
@@ -63,32 +65,15 @@ const ProductCard = ({ product }) => {
             initial={false}
             animate={{ opacity: isHovered ? 1 : 0 }}
           >
-            <div className="flex space-x-2">
-              <motion.button
-                onClick={handleAddToCart}
-                className="p-3 bg-white/90 backdrop-blur-sm rounded-full hover:bg-primary-500 hover:text-white transition-colors shadow-soft"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <FaShoppingCart className="text-sm" />
-              </motion.button>
-              
-              <motion.button
-                className="p-3 bg-white/90 backdrop-blur-sm rounded-full hover:bg-accent-500 hover:text-white transition-colors shadow-soft"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <FaHeart className="text-sm" />
-              </motion.button>
-              
-              <motion.div
-                className="p-3 bg-white/90 backdrop-blur-sm rounded-full hover:bg-secondary-800 hover:text-white transition-colors shadow-soft"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <FaEye className="text-sm" />
-              </motion.div>
-            </div>
+            <motion.button
+              onClick={handleAddToCart}
+              aria-label="Add to cart"
+              className="p-3 bg-white/90 backdrop-blur-sm rounded-full hover:bg-primary-500 hover:text-white transition-colors shadow-soft"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+            >
+              <FaShoppingCart className="text-sm" />
+            </motion.button>
           </motion.div>
 
           {/* Sale Badge */}

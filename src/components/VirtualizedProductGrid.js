@@ -1,11 +1,15 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useContext } from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import ProductCard from './ProductCard';
+import { CartContext } from '../context/CartContext';
 import { getFinalImageURL, handleImageError } from '../utils/imageUtils';
 
 const VirtualizedProductGrid = ({ products, viewMode = 'grid' }) => {
   const [visibleItems, setVisibleItems] = useState(20); // Show 20 items initially
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const { addToCart } = useContext(CartContext);
 
   // Memoize the visible products to avoid recalculation
   const displayedProducts = useMemo(() => {
@@ -76,7 +80,7 @@ const VirtualizedProductGrid = ({ products, viewMode = 'grid' }) => {
               <ProductCard product={product} />
             ) : (
               <div className="bg-white rounded-2xl shadow-soft p-6 flex items-center space-x-6">
-                <div className="w-24 h-24 bg-secondary-100 rounded-xl overflow-hidden flex-shrink-0">
+                <Link to={`/products/${product._id}`} className="w-24 h-24 bg-secondary-100 rounded-xl overflow-hidden flex-shrink-0">
                   <img
                     src={getFinalImageURL(product.image, 200)}
                     alt={product.name}
@@ -84,9 +88,11 @@ const VirtualizedProductGrid = ({ products, viewMode = 'grid' }) => {
                     loading="lazy"
                     onError={handleImageError}
                   />
-                </div>
+                </Link>
                 <div className="flex-1">
-                  <h3 className="font-semibold text-secondary-800 mb-1">{product.name}</h3>
+                  <Link to={`/products/${product._id}`}>
+                    <h3 className="font-semibold text-secondary-800 mb-1 hover:text-primary-600 transition-colors">{product.name}</h3>
+                  </Link>
                   <p className="text-secondary-500 text-sm mb-2">{product.category}</p>
                   <div className="flex items-center justify-between">
                     <span className="text-xl font-bold text-primary-600">
@@ -97,6 +103,10 @@ const VirtualizedProductGrid = ({ products, viewMode = 'grid' }) => {
                       }).format(product.price)}
                     </span>
                     <motion.button
+                      onClick={() => {
+                        addToCart(product);
+                        toast.success(`${product.name} added to cart`);
+                      }}
                       className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}

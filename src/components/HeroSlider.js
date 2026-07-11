@@ -164,21 +164,6 @@ const HeroSlider = ({ slides }) => {
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
       </button>
-      
-      {/* Slide Indicators */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex space-x-2">
-        {slides.map((_, index) => (
-          <button
-            key={index}
-            className={`w-3 h-3 rounded-full transition-all duration-300 ${
-              index === activeSlide 
-                ? 'bg-white scale-125' 
-                : 'bg-white/60 hover:bg-white/80'
-            }`}
-            onClick={() => setActiveSlide(index)}
-          />
-        ))}
-      </div>
     </div>
   );
 };

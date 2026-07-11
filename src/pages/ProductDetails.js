@@ -17,8 +17,7 @@ import {
 } from 'react-icons/fa';
 import api from '../services/api';
 import { useCart } from '../context/CartContext';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
 import { getFinalImageURL, handleImageError, getProductImages } from '../utils/imageUtils';
 import SEO from '../components/SEO';
 
@@ -216,7 +215,6 @@ const ProductDetails = () => {
         url={window.location.href}
       />
       <div className="min-h-screen bg-backgroundLight pt-32 pb-28 md:pb-20">
-        <ToastContainer />
         
         <div className="container mx-auto px-4">
         {/* Back Button */}

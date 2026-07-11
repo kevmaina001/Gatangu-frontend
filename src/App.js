@@ -1,6 +1,8 @@
 import React, { useEffect, Suspense } from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 
@@ -16,7 +18,6 @@ import BackendWakeup from './components/BackendWakeup';
 const Home = React.lazy(() => import('./pages/Home'));
 const ProductDetails = React.lazy(() => import('./pages/ProductDetails'));
 const Cart = React.lazy(() => import('./pages/Cart'));
-const Checkout = React.lazy(() => import('./pages/Checkout'));
 const Profile = React.lazy(() => import('./pages/Profile'));
 const AdminPanel = React.lazy(() => import('./pages/AdminPanel'));
 const AddProduct = React.lazy(() => import('./pages/AddProduct'));
@@ -61,6 +62,8 @@ const App = () => {
           <CartProvider>
             {/* Cold-start overlay: shows only if the backend is slow to wake */}
             <BackendWakeup />
+            {/* Global toast notifications (add-to-cart, order status, errors) */}
+            <ToastContainer position="top-center" autoClose={2500} hideProgressBar newestOnTop closeOnClick theme="colored" />
             <div className="flex flex-col min-h-screen">
               {/* Navbar */}
               <Navbar />
@@ -73,7 +76,6 @@ const App = () => {
                     <Route path="/" element={<Home />} />
                     <Route path="/products/:id" element={<ProductDetails />} />
                     <Route path="/cart" element={<Cart />} />
-                    <Route path="/checkout" element={<Checkout />} />
                     <Route path="/login" element={<SignIn />} />
                     <Route path="/register" element={<SignUp />} />
                     <Route path="/password-recovery" element={<PasswordRecovery />} />
@@ -86,6 +88,9 @@ const App = () => {
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/admin-panel" element={<AdminPanel />} />
                     <Route path="/add-product" element={<AddProduct />} />
+
+                    {/* Unknown URLs (incl. the removed /checkout) go home instead of a blank page */}
+                    <Route path="*" element={<Navigate to="/" replace />} />
                   </Routes>
                 </Suspense>
               </main>

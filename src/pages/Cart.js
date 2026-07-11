@@ -10,6 +10,7 @@ import {
 } from 'react-icons/fa';
 import { useCart } from '../context/CartContext';
 import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import fetchWithAuth from '../utils/fetchWithAuth';
 import { useAuth } from '../context/AuthContext';
 import { jwtDecode } from 'jwt-decode';
@@ -50,7 +51,7 @@ const CartPage = () => {
 
       // Check if token is expired
       if (decoded.exp * 1000 < Date.now()) {
-        alert('Session expired. Please log in again to proceed with payment.');
+        toast.error('Session expired. Please log in again to proceed with payment.');
         logout(); // Logout the user
         navigate('/login'); // Redirect to login page
         return false;
@@ -58,7 +59,7 @@ const CartPage = () => {
       return true;
     } catch (error) {
       console.error('Token validation error:', error.message);
-      alert('Invalid session. Please log in again.');
+      toast.error('Invalid session. Please log in again.');
       logout();
       navigate('/login');
       return false;
@@ -67,7 +68,7 @@ const CartPage = () => {
 
   const handleWhatsAppCheckout = async () => {
     if (!formData.name || !formData.location) {
-      alert('Please fill out your name and location before proceeding to checkout.');
+      toast.warn('Please fill out your name and location before proceeding to checkout.');
       return;
     }
 
@@ -105,7 +106,7 @@ const CartPage = () => {
         if (response.ok) {
           sendOrderDetailsToWhatsApp(data._id);
         } else {
-          alert(`Failed to process order: ${data.message || 'Unknown error'}`);
+          toast.error(`Failed to process order: ${data.message || 'Unknown error'}`);
         }
       } else {
         // For guest users, send directly to WhatsApp without saving to backend
@@ -113,7 +114,7 @@ const CartPage = () => {
       }
     } catch (error) {
       console.error('Error processing order:', error.message);
-      alert('An error occurred while processing your order.');
+      toast.error('An error occurred while processing your order.');
     } finally {
       setLoading(false);
     }
@@ -172,9 +173,9 @@ Thank you for choosing Gatangu Enterprise.`;
     clearCart();
     
     if (orderId) {
-      alert(`Order saved, kindly proceed to WhatsApp so that you can complete your order. You can track this order in your profile if registered.`);
+      toast.success('Order saved! Complete it in WhatsApp — you can track it in your profile.', { autoClose: 6000 });
     } else {
-      alert(`Order sent to Gatangu Enterprises Kamune! We will contact you shortly to confirm payment and delivery details.`);
+      toast.success('Order sent to Gatangu Enterprises Kamune! We will contact you shortly to confirm payment and delivery.', { autoClose: 6000 });
     }
   };
 
