@@ -27,7 +27,7 @@ const ADMIN_ID = '674e4b8c22fc2df1f90d95ae'; // Hardcoded Admin User ID
      // Redirect non-admin users
   useEffect(() => {
     if (!user || user.id !== ADMIN_ID) {
-      alert('Go to Hell');
+      alert('Access denied. Admins only.');
       navigate('/');
     }
   }, [user, navigate]);
