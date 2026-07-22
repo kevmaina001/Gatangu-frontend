@@ -73,10 +73,14 @@ const ADMIN_ID = '674e4b8c22fc2df1f90d95ae'; // Hardcoded Admin User ID
   const deleteProduct = async (id) => {
     try {
       const response = await fetch(`${API_URL}/products/${id}`, { method: 'DELETE' });
-      if (!response.ok) throw new Error('Failed to delete product');
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.message || `Failed to delete product (status ${response.status})`);
+      }
       fetchProducts(); // Refresh product list
     } catch (error) {
       console.error('Error deleting product:', error);
+      alert(`Error deleting product: ${error.message}`);
     }
   };
 
@@ -103,11 +107,15 @@ const ADMIN_ID = '674e4b8c22fc2df1f90d95ae'; // Hardcoded Admin User ID
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editData),
       });
-      if (!response.ok) throw new Error('Failed to update product');
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.message || `Failed to update product (status ${response.status})`);
+      }
       closeEditModal();
       fetchProducts(); // Refresh product list
     } catch (error) {
       console.error('Error updating product:', error);
+      alert(`Error updating product: ${error.message}`);
     }
   };
 
