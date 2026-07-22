@@ -78,6 +78,7 @@ const ADMIN_ID = '674e4b8c22fc2df1f90d95ae'; // Hardcoded Admin User ID
         throw new Error(data.message || `Failed to delete product (status ${response.status})`);
       }
       fetchProducts(); // Refresh product list
+      alert('Product deleted successfully.');
     } catch (error) {
       console.error('Error deleting product:', error);
       alert(`Error deleting product: ${error.message}`);
