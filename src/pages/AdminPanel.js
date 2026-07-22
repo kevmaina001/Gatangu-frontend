@@ -114,6 +114,7 @@ const ADMIN_ID = '674e4b8c22fc2df1f90d95ae'; // Hardcoded Admin User ID
       }
       closeEditModal();
       fetchProducts(); // Refresh product list
+      alert('Product updated successfully.');
     } catch (error) {
       console.error('Error updating product:', error);
       alert(`Error updating product: ${error.message}`);
